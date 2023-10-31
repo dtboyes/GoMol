@@ -4,10 +4,6 @@ type vec3 struct {
 	x, y, z float64
 }
 
-type windowSize struct {
-	width, height int
-}
-
 // define ray object, which has an origin and direction
 type Ray struct {
 	origin    vec3

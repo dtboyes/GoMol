@@ -10,15 +10,6 @@ import (
 // downloadPDB downloads a PDB file from the RCSB PDB database using an HTTP request
 // eliminates the need for the user to manually download PDB files
 func downloadPDB(url, destination string) error {
-
-	files, _ := os.ReadDir(destination)
-	for _, file := range files {
-		if file.Name() == destination {
-			fmt.Println("File already exists")
-			return nil
-		}
-	}
-
 	response, err := http.Get(url)
 	if err != nil {
 		return err
