@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"runtime"
 
 	"github.com/go-gl/gl/v2.1/gl"
@@ -23,6 +24,16 @@ func init() {
 }
 
 func main() {
+
+	// download a pdb file from the RCSB PDB database
+	pdbURL := "https://files.rcsb.org/download/" + os.Args[1] + ".pdb"
+	localPath := "pdbfiles/" + os.Args[1] + ".pdb"
+
+	err := downloadPDB(pdbURL, localPath)
+	if err != nil {
+		fmt.Println("Error downloading PDB file:", err)
+	}
+
 	// Initialize GLFW and create a window
 	if err := glfw.Init(); err != nil {
 		log.Fatal(err)
@@ -44,7 +55,7 @@ func main() {
 	gl.Viewport(0, 0, imageWidth, imageHeight)
 
 	// parse pdb file to get list of atom objects
-	atoms := ParsePDB("pdbfiles/1mh1.pdb")
+	atoms := ParsePDB("pdbfiles/" + os.Args[1] + ".pdb")
 	fmt.Println(atoms[0])
 
 	// Generate rays and render them
