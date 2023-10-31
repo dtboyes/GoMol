@@ -26,13 +26,18 @@ type CameraFunctions interface {
 	getD()
 }
 
-type Sphere struct {
-	radius float64
-	x, y   float64
-}
-
 type Camera struct {
 	position, viewDirection vec3
 	up, right               vec3
 	r, l, t, b, d           float64
+}
+
+type Atom struct {
+	number   int
+	element  string
+	residue  string
+	chain    string
+	sequence string
+	x, y, z  float64
+	radius   float64
 }

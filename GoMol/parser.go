@@ -27,7 +27,7 @@ func ParsePDB(pdbFile string) []Atom {
 		x, _ := strconv.ParseFloat(parts[6], 64)
 		y, _ := strconv.ParseFloat(parts[7], 64)
 		z, _ := strconv.ParseFloat(parts[8], 64)
-		newAtom := Atom{number, element, residue, chain, sequence, x, y, z}
+		newAtom := Atom{number, element, residue, chain, sequence, x, y, z, 5.0}
 		atoms = append(atoms, newAtom)
 	}
 	return atoms
