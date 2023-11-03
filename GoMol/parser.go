@@ -7,6 +7,7 @@ import (
 	"strconv"
 )
 
+// ParsePDB takes as input a pdb file and returns a list of Atom objects
 func ParsePDB(pdbFile string) []Atom {
 	atoms := make([]Atom, 0)
 	f, _ := os.Open(pdbFile)
