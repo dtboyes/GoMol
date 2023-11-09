@@ -11,8 +11,11 @@ import (
 )
 
 const (
-	imageWidth  = 800
-	imageHeight = 600
+	imageWidth     = 800
+	aspectRatio    = 16.0 / 9.0
+	imageHeight    = imageWidth / aspectRatio
+	viewportHeight = 2.0
+	viewportWidth  = viewportHeight * float64(imageWidth) / float64(imageHeight)
 )
 
 var (
@@ -25,10 +28,27 @@ func init() {
 
 func main() {
 
-	// download a pdb file from the RCSB PDB database
+	// Initializing Camera
+	camera := InitializeCamera()
+	viewport_u := vec3{camera.viewportWidth, 0, 0}
+	viewport_v := vec3{0, -camera.viewportHeight, 0}
+
+	// Initializing viewport, pixel delta, and top left pixel location
+
+	// pixel_delta_u = viewport_u / imageWidth
+	pixel_delta_u := viewport_u.multiplyScalar(1.0 / float64(imageWidth))
+	// pixel_delta_u = viewport_v / imageHeight
+	pixel_delta_v := viewport_v.multiplyScalar(1.0 / float64(imageHeight))
+
+	// uppper left of viewport is the camera position minus half of the viewport width and height minus the focal length
+	viewport_upper_left := camera.position.vectorSubtraction(viewport_u.multiplyScalar(0.5)).vectorSubtraction(viewport_v.multiplyScalar(0.5)).vectorSubtraction(vec3{0, 0, camera.focalLength})
+
+	// top left pixel location is the upper left viewport location plus half of the pixel width and height
+	pixel00Location := viewport_upper_left.vectorAddition(pixel_delta_u.multiplyScalar(0.5).vectorAddition(pixel_delta_v.multiplyScalar(0.5)))
+
+	// DOWNLOAD PDB FILE
 	pdbURL := "https://files.rcsb.org/download/" + os.Args[1] + ".pdb"
 	localPath := "pdbfiles/" + os.Args[1] + ".pdb"
-
 	err := downloadPDB(pdbURL, localPath)
 	if err != nil {
 		fmt.Println("Error downloading PDB file:", err)
@@ -59,7 +79,7 @@ func main() {
 	fmt.Println(atoms[0])
 
 	// Generate rays and render them
-	RenderScene()
+	RenderScene(camera, atoms, pixel00Location, pixel_delta_u, pixel_delta_v, viewport_upper_left)
 
 	// Main loop
 	for !window.ShouldClose() {

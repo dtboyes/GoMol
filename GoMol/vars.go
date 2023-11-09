@@ -8,24 +8,15 @@ type vec3 struct {
 type Ray struct {
 	origin    vec3
 	direction vec3
-}
-
-type CameraFunctions interface {
-	getPosition()
-	getViewDirection()
-	getUpVector()
-	getRightVector()
-	getR()
-	getL()
-	getT()
-	getB()
-	getD()
+	at        vec3
+	color     Color
 }
 
 type Camera struct {
-	position, viewDirection vec3
-	up, right               vec3
-	r, l, t, b, d           float64
+	position       vec3
+	focalLength    float64
+	viewportHeight float64
+	viewportWidth  float64
 }
 
 type Atom struct {
@@ -36,4 +27,8 @@ type Atom struct {
 	sequence string
 	x, y, z  float64
 	radius   float64
+}
+
+type Color struct {
+	r, g, b, a uint8
 }
