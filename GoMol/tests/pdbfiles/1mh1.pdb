@@ -79,7 +79,7 @@ REMARK   3   ESU FOR B VALUES BASED ON MAXIMUM LIKELIHOOD (A**2): NULL
 REMARK   3                                                                      
 REMARK   3  RMS DEVIATIONS FROM IDEAL VALUES.                                   
 REMARK   3   DISTANCE RESTRAINTS.                    RMS    SIGMA               
-REMARK   3    BOND LENGTH                     (A) : NULL  ; NULL                
+REMARK   3    BOND Length                     (A) : NULL  ; NULL                
 REMARK   3    ANGLE DISTANCE                  (A) : NULL  ; NULL                
 REMARK   3    INTRAPLANAR 1-4 DISTANCE        (A) : NULL  ; NULL                
 REMARK   3    H-BOND OR METAL COORDINATION    (A) : NULL  ; NULL                
@@ -124,7 +124,7 @@ REMARK 200  RADIATION SOURCE               : SRS
 REMARK 200  BEAMLINE                       : PX9.6                              
 REMARK 200  X-RAY GENERATOR MODEL          : NULL                               
 REMARK 200  MONOCHROMATIC OR LAUE    (M/L) : M                                  
-REMARK 200  WAVELENGTH OR RANGE        (A) : 0.87                               
+REMARK 200  WAVELength OR RANGE        (A) : 0.87                               
 REMARK 200  MONOCHROMATOR                  : NULL                               
 REMARK 200  OPTICS                         : NULL                               
 REMARK 200                                                                      
@@ -245,7 +245,7 @@ REMARK 470     LYS A 132    CD   CE   NZ
 REMARK 470     LYS A 133    CG   CD   CE   NZ                                   
 REMARK 500                                                                      
 REMARK 500 GEOMETRY AND STEREOCHEMISTRY                                         
-REMARK 500 SUBTOPIC: COVALENT BOND LENGTHS                                      
+REMARK 500 SUBTOPIC: COVALENT BOND LengthS                                      
 REMARK 500                                                                      
 REMARK 500 THE STEREOCHEMICAL PARAMETERS OF THE FOLLOWING RESIDUES              
 REMARK 500 HAVE VALUES WHICH DEVIATE FROM EXPECTED VALUES BY MORE               

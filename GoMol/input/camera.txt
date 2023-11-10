@@ -1,4 +1,4 @@
 CAMERA
-pos 0.0 0.0 -100.0
-focal_length 1.0
+pos 0.0 0.0 -50.0
+focal_Length 1.0
 viewport_height 2.0

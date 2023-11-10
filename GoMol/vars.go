@@ -8,7 +8,6 @@ type vec3 struct {
 type Ray struct {
 	origin    vec3
 	direction vec3
-	at        vec3
 	color     Color
 }
 
@@ -17,6 +16,13 @@ type Camera struct {
 	focalLength    float64
 	viewportHeight float64
 	viewportWidth  float64
+	pixel00        vec3
+	pixelDeltaU    vec3
+	pixelDeltaV    vec3
+}
+
+type Light struct {
+	position vec3
 }
 
 type Atom struct {
