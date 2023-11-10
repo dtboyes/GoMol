@@ -36,7 +36,7 @@ func RayColor(r *Ray, light *Light, atoms []*Atom) vec3 {
 		t := RaySphereCollision(r, atoms[i])
 		if t > 0.0 {
 			surfaceNormal := r.getAt(t).Subtract(vec3{atoms[i].x, atoms[i].y, atoms[i].z}).UnitVector()
-			color := LambertianShading(surfaceNormal, light, vec3{0.2, 0.2, 0.8})
+			color := LambertianShading(surfaceNormal, light, vec3{0.2, 0.8, 0.2})
 			return color
 			return vec3{66, 135, 245}
 		}
@@ -58,7 +58,8 @@ func LambertianShading(surfaceNormal vec3, light *Light, color vec3) vec3 {
 	cosTheta := math.Max(0, surfaceNormal.Dot(lightDirection))
 	diffuse := color.Scale(cosTheta)
 	ambient := color.Scale(0.2)
-	return ambient.Add(diffuse)
+	color = ambient.Add(diffuse)
+	return color
 }
 
 func InitializeCamera(atoms []*Atom) *Camera {

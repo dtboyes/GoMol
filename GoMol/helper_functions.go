@@ -32,7 +32,7 @@ func (v vec3) Scale(s float64) vec3 {
 }
 
 func (v vec3) UnitVector() vec3 {
-	return v.Scale(1 / v.Length())
+	return v.Scale(1.0 / v.Length())
 }
 
 func (v vec3) Length() float64 {
