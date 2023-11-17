@@ -30,8 +30,10 @@ func ParsePDB(pdbFile string) []*Atom {
 		y, _ := strconv.ParseFloat(parts[7], 64)
 		y *= -1.0
 		z, _ := strconv.ParseFloat(parts[8], 64)
-		newAtom := &Atom{number, element, residue, chain, sequence, x, y, z, 0.5}
-		atoms = append(atoms, newAtom)
+		if element == "H" || element == "C" || element == "N" || element == "O" || element == "S" {
+			newAtom := &Atom{number, element, residue, chain, sequence, x, y, z, 0.7}
+			atoms = append(atoms, newAtom)
+		}
 	}
 	return atoms
 }
@@ -60,6 +62,14 @@ func ParseCamera(cameraFile string) *Camera {
 			} else if parts[i] == "viewport_height" {
 				cam.viewportHeight, _ = strconv.ParseFloat(parts[i+1], 64)
 				break
+			} else if parts[i] == "camera_radius" {
+				cam.radius, _ = strconv.ParseFloat(parts[i+1], 64)
+			} else if parts[i] == "camera_yaw" {
+				cam.yaw, _ = strconv.ParseFloat(parts[i+1], 64)
+			} else if parts[i] == "camera_pitch" {
+				cam.pitch, _ = strconv.ParseFloat(parts[i+1], 64)
+			} else if parts[i] == "camera_speed" {
+				cam.speed, _ = strconv.ParseFloat(parts[i+1], 64)
 			}
 		}
 	}

@@ -95,7 +95,7 @@ REMARK   3   LOW RESOLUTION CUTOFF        (A) : NULL
 REMARK   3                                                                      
 REMARK   3  RMS DEVIATIONS FROM IDEAL VALUES.                                   
 REMARK   3   DISTANCE RESTRAINTS.                    RMS    SIGMA               
-REMARK   3    BOND Length                     (A) : NULL  ; NULL                
+REMARK   3    BOND LENGTH                     (A) : NULL  ; NULL                
 REMARK   3    ANGLE DISTANCE                  (A) : NULL  ; NULL                
 REMARK   3    INTRAPLANAR 1-4 DISTANCE        (A) : NULL  ; NULL                
 REMARK   3    H-BOND OR METAL COORDINATION    (A) : NULL  ; NULL                
@@ -121,7 +121,7 @@ REMARK   3   MAIN-CHAIN ANGLE              (A**2) : NULL  ; NULL
 REMARK   3   SIDE-CHAIN BOND               (A**2) : NULL  ; NULL                
 REMARK   3   SIDE-CHAIN ANGLE              (A**2) : NULL  ; NULL                
 REMARK   3                                                                      
-REMARK   3  OTHER REFINEMENT REMARKS: BOND LengthS (A) : 0.018,                 
+REMARK   3  OTHER REFINEMENT REMARKS: BOND LENGTHS (A) : 0.018,                 
 REMARK   4                                                                      
 REMARK   4 1GZX COMPLIES WITH FORMAT V. 3.30, 13-JUL-11                         
 REMARK 100                                                                      
@@ -140,7 +140,7 @@ REMARK 200  RADIATION SOURCE               : ROTATING ANODE
 REMARK 200  BEAMLINE                       : NULL                               
 REMARK 200  X-RAY GENERATOR MODEL          : RIGAKU RU200                       
 REMARK 200  MONOCHROMATIC OR LAUE    (M/L) : M                                  
-REMARK 200  WAVELength OR RANGE        (A) : 1.5418                             
+REMARK 200  WAVELENGTH OR RANGE        (A) : 1.5418                             
 REMARK 200  MONOCHROMATOR                  : GRAPHITE                           
 REMARK 200  OPTICS                         : NULL                               
 REMARK 200                                                                      
@@ -170,7 +170,7 @@ REMARK 200  R MERGE FOR SHELL          (I) : 0.30900
 REMARK 200  R SYM FOR SHELL            (I) : NULL                               
 REMARK 200  <I/SIGMA(I)> FOR SHELL         : 2.300                              
 REMARK 200                                                                      
-REMARK 200 DIFFRACTION PROTOCOL: SINGLE WAVELength                              
+REMARK 200 DIFFRACTION PROTOCOL: SINGLE WAVELENGTH                              
 REMARK 200 METHOD USED TO DETERMINE THE STRUCTURE: MOLECULAR REPLACEMENT        
 REMARK 200 SOFTWARE USED: PROLSQ                                                
 REMARK 200 STARTING MODEL: PDN ENTRY 1HGA                                       
@@ -275,7 +275,7 @@ REMARK 500
 REMARK 500 REMARK: NULL                                                         
 REMARK 500                                                                      
 REMARK 500 GEOMETRY AND STEREOCHEMISTRY                                         
-REMARK 500 SUBTOPIC: COVALENT BOND LengthS                                      
+REMARK 500 SUBTOPIC: COVALENT BOND LENGTHS                                      
 REMARK 500                                                                      
 REMARK 500 THE STEREOCHEMICAL PARAMETERS OF THE FOLLOWING RESIDUES              
 REMARK 500 HAVE VALUES WHICH DEVIATE FROM EXPECTED VALUES BY MORE               

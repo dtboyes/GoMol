@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"runtime"
 	"strings"
@@ -20,13 +21,18 @@ const (
 )
 
 var (
+	camera *Camera
+	light  *Light
+	atoms  []*Atom
+)
+
+var (
 	pixels []uint8
 )
 
 var (
-	rotationX, rotationY float64
-	lastX, lastY         float64
-	isDragging           bool
+	leftMouseButtonPressed bool
+	lastX, lastY           float64
 )
 
 func init() {
@@ -34,8 +40,9 @@ func init() {
 }
 
 func main() {
-
-	// Initializing Camera
+	// initialize number of processors
+	numProcs := runtime.NumCPU()
+	runtime.GOMAXPROCS(numProcs)
 
 	// DOWNLOAD PDB FILE
 	pdbURL := "https://files.rcsb.org/download/" + os.Args[1] + ".pdb"
@@ -66,58 +73,82 @@ func main() {
 	gl.Viewport(0, 0, imageWidth, imageHeight)
 
 	// parse pdb file to get list of atom objects
-	atoms := ParsePDB("pdbfiles/" + os.Args[1] + ".pdb")
+	atoms = ParsePDB("pdbfiles/" + os.Args[1] + ".pdb")
 	fmt.Println(atoms[0])
 
-	// Generate rays and render them
-
-	// Main loop
-	camera := InitializeCamera(atoms)
-	light := ParseLight("input/light.txt")
+	// initialize camera and light
+	camera = InitializeCamera(atoms)
+	light = ParseLight("input/light.txt")
 
 	window.SetMouseButtonCallback(mouseButtonCallback)
 	window.SetCursorPosCallback(cursorPosCallback)
 	window.SetKeyCallback(keyCallback)
-	RenderScene(camera, light, atoms)
+	window.SetScrollCallback(scrollCallback)
+	// RenderScene(camera, light, atoms)
+	// pixels = make([]uint8, 4*imageWidth*imageHeight)
+	// RenderScene(camera, light, atoms, 0, imageHeight, pixels)
+	pixels = make([]uint8, 4*imageWidth*imageHeight)
+	RenderMultiProc(pixels, numProcs)
+	// main loop to render scene
 	for !window.ShouldClose() {
-		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
+		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 		gl.DrawPixels(imageWidth, imageHeight, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(pixels))
 		gl.LoadIdentity()
-
-		gl.Rotatef(float32(rotationX), float32(camera.position.x), float32(camera.position.y), float32(camera.position.z))
-		gl.Rotatef(float32(rotationY), float32(camera.position.x), float32(camera.position.y), float32(camera.position.z))
 		window.SwapBuffers()
 		glfw.PollEvents()
 
 	}
 }
 
-func mouseButtonCallback(window *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
+func mouseButtonCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Press {
-			isDragging = true
-			lastX, lastY = window.GetCursorPos()
+			leftMouseButtonPressed = true
+			lastX, lastY = w.GetCursorPos()
 		} else if action == glfw.Release {
-			isDragging = false
+			leftMouseButtonPressed = false
 		}
 	}
 }
 
 func cursorPosCallback(window *glfw.Window, xpos, ypos float64) {
-	if isDragging {
-		dx := xpos - lastX
-		dy := ypos - lastY
-
-		rotationX += dy * 0.1
-		rotationY += dx * 0.1
-
-		lastX, lastY = xpos, ypos
+	if leftMouseButtonPressed {
+		camera.yaw += camera.speed * (xpos - lastX)
+		camera.pitch += camera.speed * (ypos - lastY)
+		if camera.pitch > 89.0 {
+			camera.pitch = 89.0
+		}
+		if camera.pitch < -89.0 {
+			camera.pitch = -89.0
+		}
+		camera.position.x += camera.radius * math.Cos(degToRad(camera.yaw)) * math.Cos(degToRad(camera.pitch))
+		camera.position.y = camera.radius * math.Sin(degToRad(camera.pitch))
+		camera.position.z += camera.radius * math.Sin(degToRad(camera.yaw)) * math.Cos(degToRad(camera.pitch))
 	}
 }
 
 func keyCallback(window *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-	if action == glfw.Press && key == glfw.KeyEscape {
-		window.SetShouldClose(true)
+	if action == glfw.Press || action == glfw.Repeat {
+		if key == glfw.KeyEscape {
+			window.SetShouldClose(true)
+		} else if key == glfw.KeyW {
+			light.position.y += 0.1
+		} else if key == glfw.KeyS {
+			light.position.y -= 0.1
+		} else if key == glfw.KeyA {
+			light.position.x -= 0.1
+		} else if key == glfw.KeyD {
+			camera.position.x += 0.1
+		}
 	}
+}
+
+func scrollCallback(window *glfw.Window, xoff, yoff float64) {
+	camera.position.z += yoff * 0.1
+	camera.position.z -= xoff * 0.1
+}
+
+func degToRad(degrees float64) float64 {
+	return degrees * math.Pi / 180.0
 }

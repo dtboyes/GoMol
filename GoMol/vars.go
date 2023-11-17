@@ -13,6 +13,10 @@ type Ray struct {
 
 type Camera struct {
 	position       vec3
+	radius         float64
+	yaw            float64
+	pitch          float64
+	speed          float64
 	focalLength    float64
 	viewportHeight float64
 	viewportWidth  float64
@@ -37,4 +41,10 @@ type Atom struct {
 
 type Color struct {
 	r, g, b, a uint8
+}
+
+type Collision struct {
+	point  vec3
+	normal vec3
+	color  vec3
 }
