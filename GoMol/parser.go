@@ -23,7 +23,7 @@ func ParsePDB(pdbFile string) []*Atom {
 		}
 		number, _ := strconv.Atoi(parts[1])
 		element := parts[2]
-		residue := parts[3]
+		amino := parts[3]
 		chain := parts[4]
 		sequence := parts[5]
 		x, _ := strconv.ParseFloat(parts[6], 64)
@@ -45,7 +45,7 @@ func ParsePDB(pdbFile string) []*Atom {
 			} else if element == "S" {
 				radius = 1.8
 			}
-			newAtom := &Atom{number, element, residue, chain, sequence, x, y, z, radius}
+			newAtom := &Atom{number, element, amino, chain, sequence, x, y, z, radius}
 			atoms = append(atoms, newAtom)
 		}
 	}

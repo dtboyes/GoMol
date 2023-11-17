@@ -1,43 +1,47 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
-	"os"
 )
 
-func downloadPDB(url, destination string) error {
-	response, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	// Create the file
-	file, err := os.Create(destination)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Write the body to file
-	_, err = io.Copy(file, response.Body)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("PDB file downloaded successfully to: %s\n", destination)
-	return nil
-}
-
 func main() {
-	fmt.Print()
-	pdbURL := "https://files.rcsb.org/download/" + os.Args[1] + ".pdb" // Replace 'xxxx' with the actual PDB code
-	localPath := "pdbfiles/" + os.Args[1] + ".pdb"                     // Replace 'xxxx' with the actual PDB code
+	// Replace these values with your actual query and database information
+	query := ">query\nPROTEINSEQUENCE"
+	database := "nr"
 
-	err := downloadPDB(pdbURL, localPath)
+	// Define the BLAST service endpoint
+	blastURL := "https://blast.ncbi.nlm.nih.gov/Blast.cgi"
+
+	// Build the POST request body
+	requestBody := fmt.Sprintf("CMD=Put&PROGRAM=blastp&DATABASE=%s&QUERY=%s", database, query)
+
+	// Create a new HTTP request
+	req, err := http.NewRequest("POST", blastURL, bytes.NewBufferString(requestBody))
 	if err != nil {
-		fmt.Println("Error downloading PDB file:", err)
+		log.Fatal("Failed to create HTTP request:", err)
 	}
+
+	// Set the content type for the request
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	// Perform the HTTP request
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Fatal("Failed to perform HTTP request:", err)
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal("Failed to read response body:", err)
+	}
+
+	// Print the BLAST result
+	fmt.Println("BLAST result:")
+	fmt.Println(string(body))
 }

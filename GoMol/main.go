@@ -23,7 +23,8 @@ const (
 var (
 	camera *Camera
 	light  *Light
-	atoms  []*Atom
+	atoms1 []*Atom
+	atoms2 []*Atom
 )
 
 var (
@@ -70,26 +71,33 @@ func main() {
 	gl.Viewport(0, 0, imageWidth, imageHeight)
 
 	// parse pdb file to get list of atom objects
-	atoms = ParsePDB("pdbfiles/" + os.Args[1] + ".pdb")
-	fmt.Println(atoms[0])
+	atoms1 = ParsePDB("pdbfiles/" + os.Args[1] + ".pdb")
+	fmt.Println(atoms1[0])
+
+	atoms2 = ParsePDB("pdbfiles/" + os.Args[2] + ".pdb")
+
+	atoms1_sequence := getQuerySequence(atoms1)
+	atoms2_sequence := getQuerySequence(atoms2)
+
+	fmt.Println(NeedlemanWunsch(atoms1_sequence, atoms2_sequence, 2, -1, -2))
 
 	// initialize camera and light
-	camera = InitializeCamera(atoms)
+	camera = InitializeCamera(atoms1)
 	light = ParseLight("input/light.txt")
 
 	window.SetMouseButtonCallback(mouseButtonCallback)
 	window.SetCursorPosCallback(cursorPosCallback)
 	window.SetKeyCallback(keyCallback)
 	window.SetScrollCallback(scrollCallback)
-	// RenderScene(camera, light, atoms)
-	// pixels = make([]uint8, 4*imageWidth*imageHeight)
-	// RenderScene(camera, light, atoms, 0, imageHeight, pixels)
 
+	// finished := make(chan bool, numProcs)
+	// pixels := make([]uint8, 4*imageWidth*imageHeight)
+	// RenderScene(camera, light, atoms, 0, imageHeight, pixels, finished)
 	// main loop to render scene
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+		RotateAtoms(atoms1, rotationX, rotationY)
 		pixels := make([]uint8, 4*imageWidth*imageHeight)
-		RotateAtoms(atoms, rotationX, rotationY)
 		RenderMultiProc(pixels, numProcs)
 		gl.DrawPixels(imageWidth, imageHeight, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(pixels))
 		gl.LoadIdentity()

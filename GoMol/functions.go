@@ -10,7 +10,7 @@ func RenderMultiProc(pixels []uint8, numProcs int) {
 	for i := 0; i < numProcs; i++ {
 		start_height := i * imageHeight / numProcs
 		end_height := (i + 1) * imageHeight / numProcs
-		go RenderScene(camera, light, atoms, start_height, end_height, pixels, finished)
+		go RenderScene(camera, light, atoms1, start_height, end_height, pixels, finished)
 	}
 	for i := 0; i < numProcs; i++ {
 		<-finished
@@ -43,7 +43,7 @@ func RenderScene(camera *Camera, light *Light, atoms []*Atom, start, end int, pi
 func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom) vec3 {
 	colorByChain := false
 	colorByAtom := true
-	colorByDifferingRegions := false
+	//colorByDifferingRegions := false
 	for i := 0; i < len(atoms); i++ {
 		collision := RaySphereCollision(r, atoms[i])
 		if !collision.normal.EqualsZero() {
@@ -71,8 +71,6 @@ func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom) vec3 {
 				} else if atoms[i].element == "S" {
 					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.784, 0.196})
 				}
-			} else if colorByDifferingRegions {
-
 			}
 			return collision.color
 		}
@@ -113,17 +111,20 @@ func LambertianShading(collision Collision, light *Light, camera *Camera, color 
 	constantAttenuation := 0.02
 	linearAttenuation := 0.005
 	quadraticAttenuation := 0.0005
-	lightIntensity := 2.0
-	dist := light.getPosition().Subtract(collision.point).Length() * 0.1
+	lightIntensity := 1.0
+	specularColor := vec3{1.0, 1.0, 1.0}
+	dist := light.getPosition().Subtract(collision.point).Length()
 	totalAttenuation := 1.0 / (constantAttenuation + linearAttenuation*dist + quadraticAttenuation*dist*dist)
-
 	// // lightDirection = unit vector of (light.position - collision.point)
 	lightDirection := light.getPosition().Subtract(collision.point).Normalize()
 
+	cameraDirection := camera.getPosition().Subtract(collision.point).Normalize()
+	reflectDirection := lightDirection.Subtract(collision.normal.Scale(2.0 * lightDirection.Dot(collision.normal))).Normalize()
 	// diffuse = color * max(0, collision.normal dot lightDirection) * totalAttenuation * lightIntensity
 	diffuse := color.Scale(math.Max(0.0, collision.normal.Dot(lightDirection))).Scale(totalAttenuation * lightIntensity)
-	ambient := color.Scale(0.5)
-	color = diffuse.Add(ambient)
+	ambient := color.Scale(0.85)
+	specular := specularColor.Scale(math.Pow(math.Max(0.0, reflectDirection.Dot(cameraDirection)), 1000)).Scale(totalAttenuation * lightIntensity)
+	color = diffuse.Add(ambient).Add(specular)
 	return color
 }
 
@@ -185,4 +186,145 @@ func colorToRGBA(c vec3) [4]uint8 {
 		uint8(c.z * 255),
 		255,
 	}
+}
+
+func getQuerySequence(atoms []*Atom) string {
+	sequence := ""
+	current_aa := ""
+	for i := 0; i < len(atoms); i++ {
+		if atoms[i].amino != current_aa {
+			sequence += ConvertAminoAcidToSingleChar(atoms[i].amino)
+			current_aa = atoms[i].amino
+		}
+	}
+	return sequence
+}
+
+// NeedlemanWunsch performs global sequence alignment using the Needleman-Wunsch algorithm
+func NeedlemanWunsch(seq1, seq2 string, match, mismatch, gap int) (alignment string, score int) {
+	rows, cols := len(seq1)+1, len(seq2)+1
+
+	// Initialize the score matrix
+	scoreMatrix := make([][]int, rows)
+	for i := range scoreMatrix {
+		scoreMatrix[i] = make([]int, cols)
+	}
+
+	// Initialize the traceback matrix
+	traceback := make([][]rune, rows)
+	for i := range traceback {
+		traceback[i] = make([]rune, cols)
+	}
+
+	// Initialize the first row and column of the score matrix
+	for i := 0; i < rows; i++ {
+		scoreMatrix[i][0] = i * gap
+		traceback[i][0] = 'U' // Up
+	}
+	for j := 0; j < cols; j++ {
+		scoreMatrix[0][j] = j * gap
+		traceback[0][j] = 'L' // Left
+	}
+
+	// Fill in the score and traceback matrices
+	for i := 1; i < rows; i++ {
+		for j := 1; j < cols; j++ {
+			matchScore := scoreMatrix[i-1][j-1] + match
+			mismatchScore := scoreMatrix[i-1][j-1] + mismatch
+			gapUpScore := scoreMatrix[i-1][j] + gap
+			gapLeftScore := scoreMatrix[i][j-1] + gap
+
+			// Determine the maximum score
+			maxScore := matchScore
+			traceback[i][j] = 'D' // Diagonal
+			if mismatchScore > maxScore {
+				maxScore = mismatchScore
+			}
+			if gapUpScore > maxScore {
+				maxScore = gapUpScore
+				traceback[i][j] = 'U' // Up
+			}
+			if gapLeftScore > maxScore {
+				maxScore = gapLeftScore
+				traceback[i][j] = 'L' // Left
+			}
+
+			// Update the score matrix
+			scoreMatrix[i][j] = maxScore
+		}
+	}
+
+	// Traceback to reconstruct the alignment
+	i, j := rows-1, cols-1
+	for i > 0 && j > 0 {
+		switch traceback[i][j] {
+		case 'D': // Diagonal
+			alignment = string(seq1[i-1]) + alignment
+			i--
+			j--
+		case 'U': // Up
+			alignment = "-" + alignment
+			i--
+		case 'L': // Left
+			alignment = string(seq2[j-1]) + alignment
+			j--
+		}
+	}
+
+	// Handle remaining characters
+	for i > 0 {
+		alignment = string(seq1[i-1]) + alignment
+		i--
+	}
+	for j > 0 {
+		alignment = string(seq2[j-1]) + alignment
+		j--
+	}
+
+	return alignment, scoreMatrix[rows-1][cols-1]
+}
+
+func ConvertAminoAcidToSingleChar(aa string) string {
+	switch aa {
+	case "MET":
+		return "M"
+	case "ARG":
+		return "R"
+	case "ASN":
+		return "N"
+	case "ASP":
+		return "D"
+	case "CYS":
+		return "C"
+	case "GLN":
+		return "Q"
+	case "GLU":
+		return "E"
+	case "GLY":
+		return "G"
+	case "HIS":
+		return "H"
+	case "ILE":
+		return "I"
+	case "LEU":
+		return "L"
+	case "LYS":
+		return "K"
+	case "PHE":
+		return "F"
+	case "PRO":
+		return "P"
+	case "SER":
+		return "S"
+	case "THR":
+		return "T"
+	case "TRP":
+		return "W"
+	case "TYR":
+		return "Y"
+	case "VAL":
+		return "V"
+	default:
+	}
+	return ""
 }

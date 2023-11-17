@@ -32,7 +32,7 @@ type Light struct {
 type Atom struct {
 	number   int
 	element  string
-	residue  string
+	amino    string
 	chain    string
 	sequence string
 	x, y, z  float64
