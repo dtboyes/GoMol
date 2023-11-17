@@ -18,8 +18,6 @@ func RenderMultiProc(pixels []uint8, numProcs int) {
 }
 
 func RenderScene(camera *Camera, light *Light, atoms []*Atom, start, end int, pixels []uint8, finished chan bool) {
-	// Initialize pixel data
-	light.position = light.position.Add(CenterOfMass(atoms))
 	for j := start; j < end; j++ {
 		for i := 0; i < imageWidth; i++ {
 			// pixel_center = pixel00Location + pixel_delta_u * i + pixel_delta_v * j
@@ -41,8 +39,8 @@ func RenderScene(camera *Camera, light *Light, atoms []*Atom, start, end int, pi
 	finished <- true
 }
 func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom) vec3 {
-	colorByChain := false
-	colorByAtom := true
+	colorByChain := true
+	colorByAtom := false
 	//colorByDifferingRegions := false
 	for i := 0; i < len(atoms); i++ {
 		collision := RaySphereCollision(r, atoms[i])
@@ -71,11 +69,13 @@ func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom) vec3 {
 				} else if atoms[i].element == "S" {
 					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.784, 0.196})
 				}
+			} else {
+				collision.color = LambertianShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
 			}
 			return collision.color
 		}
 	}
-	return vec3{0.0, 0.0, 0.0}
+	return vec3{0, 0, 0}
 }
 
 func RaySphereCollision(r *Ray, atom *Atom) Collision {
@@ -156,6 +156,11 @@ func InitializeCamera(atoms []*Atom) *Camera {
 	camera.pixel00 = pixel00Location
 
 	return camera
+}
+
+func InitializeLight(atoms []*Atom) *Light {
+	light.position = light.position.Add(CenterOfMass(atoms))
+	return light
 }
 
 func RotateAtoms(atoms []*Atom, rotationX, rotationY float64) []*Atom {
@@ -327,4 +332,24 @@ func ConvertAminoAcidToSingleChar(aa string) string {
 	default:
 	}
 	return ""
+}
+
+func BLOSUM62() [][]int {
+	return [][]int{
+		{4},
+		{-1, 5},
+		{-2, 0, 6},
+		{-2, -2, 1, 6},
+		{0, -3, -3, -3, 9},
+		{-1, 1, 0, 0, -3, 5},
+		{-1, 0, 0, 2, -4, 2, 5},
+		{0, -2, 0, -1, -3, -2, -2, 6},
+		{-2, 0, 1, -1, -3, 0, 0, -2, 8},
+		{-1, -3, -4, -3, -1, -3, -3, -4, -3, 4},
+		{-1, -2, -3, -4, -1, -2, -3, -4, -3, 2, 4},
+		{-1, 2, 0, -1, -3, 1, 1, -2, -1, -3, -2, 5},
+		{-1, -1, -2, -3, -1, -2, -2, -3, -2, 1, 2, -2, 5},
+		{-2, -3, -3, -3, -2, -1, -1, -3, -2, 1, 3, -3, 3, 6},
+		{-1, -2, -3, -4, -1, -2, -3, -4, -3, 1, 2, -2, 5, 3},
+	}
 }

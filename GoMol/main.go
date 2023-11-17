@@ -84,6 +84,7 @@ func main() {
 	// initialize camera and light
 	camera = InitializeCamera(atoms1)
 	light = ParseLight("input/light.txt")
+	light = InitializeLight(atoms1)
 
 	window.SetMouseButtonCallback(mouseButtonCallback)
 	window.SetCursorPosCallback(cursorPosCallback)
@@ -95,7 +96,7 @@ func main() {
 	// RenderScene(camera, light, atoms, 0, imageHeight, pixels, finished)
 	// main loop to render scene
 	for !window.ShouldClose() {
-		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+		gl.Clear(gl.COLOR_BUFFER_BIT)
 		RotateAtoms(atoms1, rotationX, rotationY)
 		pixels := make([]uint8, 4*imageWidth*imageHeight)
 		RenderMultiProc(pixels, numProcs)
@@ -156,8 +157,4 @@ func keyCallback(window *glfw.Window, key glfw.Key, scancode int, action glfw.Ac
 func scrollCallback(window *glfw.Window, xoff, yoff float64) {
 	camera.position.z += yoff * 0.1
 	camera.position.z -= xoff * 0.1
-}
-
-func degToRad(degrees float64) float64 {
-	return degrees * math.Pi / 180.0
 }
