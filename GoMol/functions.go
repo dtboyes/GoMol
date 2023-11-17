@@ -41,19 +41,38 @@ func RenderScene(camera *Camera, light *Light, atoms []*Atom, start, end int, pi
 	finished <- true
 }
 func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom) vec3 {
+	colorByChain := false
+	colorByAtom := true
+	colorByDifferingRegions := false
 	for i := 0; i < len(atoms); i++ {
 		collision := RaySphereCollision(r, atoms[i])
 		if !collision.normal.EqualsZero() {
-			if atoms[i].chain == "A" {
-				collision.color = LambertianShading(collision, light, camera, vec3{0.2, 1.0, 0.1})
-			} else if atoms[i].chain == "B" {
-				collision.color = LambertianShading(collision, light, camera, vec3{0.1, 0.2, 1.0})
-			} else if atoms[i].chain == "C" {
-				collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.1, 0.2})
-			} else if atoms[i].chain == "D" {
-				collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.55, 0.0})
-			} else {
-				collision.color = LambertianShading(collision, light, camera, vec3{1.0, 1.0, 1.0})
+			if colorByChain {
+				if atoms[i].chain == "A" {
+					collision.color = LambertianShading(collision, light, camera, vec3{0.2, 1.0, 0.1})
+				} else if atoms[i].chain == "B" {
+					collision.color = LambertianShading(collision, light, camera, vec3{0.1, 0.2, 1.0})
+				} else if atoms[i].chain == "C" {
+					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.1, 0.2})
+				} else if atoms[i].chain == "D" {
+					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.55, 0.0})
+				} else {
+					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 1.0, 1.0})
+				}
+			} else if colorByAtom {
+				if atoms[i].element == "H" {
+					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 1.0, 1.0})
+				} else if atoms[i].element == "C" {
+					collision.color = LambertianShading(collision, light, camera, vec3{0.565, 0.565, 0.565})
+				} else if atoms[i].element == "N" {
+					collision.color = LambertianShading(collision, light, camera, vec3{0.188, 0.313, 0.9725})
+				} else if atoms[i].element == "O" {
+					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.051, 0.051})
+				} else if atoms[i].element == "S" {
+					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.784, 0.196})
+				}
+			} else if colorByDifferingRegions {
+
 			}
 			return collision.color
 		}
@@ -136,6 +155,27 @@ func InitializeCamera(atoms []*Atom) *Camera {
 	camera.pixel00 = pixel00Location
 
 	return camera
+}
+
+func RotateAtoms(atoms []*Atom, rotationX, rotationY float64) []*Atom {
+	for i := 0; i < len(atoms); i++ {
+		// rotate around x axis
+		// y' = y*cos q - z*sin q
+		// z' = y*sin q + z*cos q
+		y := atoms[i].y
+		z := atoms[i].z
+		atoms[i].y = y*math.Cos(rotationX) - z*math.Sin(rotationX)
+		atoms[i].z = y*math.Sin(rotationX) + z*math.Cos(rotationX)
+
+		// rotate around y axis
+		// x' = x*cos q - z*sin q
+		// z' = x*sin q + z*cos q
+		x := atoms[i].x
+		z = atoms[i].z
+		atoms[i].x = x*math.Cos(rotationY) - z*math.Sin(rotationY)
+		atoms[i].z = x*math.Sin(rotationY) + z*math.Cos(rotationY)
+	}
+	return atoms
 }
 
 func colorToRGBA(c vec3) [4]uint8 {

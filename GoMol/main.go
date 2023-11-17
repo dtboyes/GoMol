@@ -27,10 +27,7 @@ var (
 )
 
 var (
-	pixels []uint8
-)
-
-var (
+	rotationX, rotationY   float64
 	leftMouseButtonPressed bool
 	lastX, lastY           float64
 )
@@ -87,12 +84,13 @@ func main() {
 	// RenderScene(camera, light, atoms)
 	// pixels = make([]uint8, 4*imageWidth*imageHeight)
 	// RenderScene(camera, light, atoms, 0, imageHeight, pixels)
-	pixels = make([]uint8, 4*imageWidth*imageHeight)
-	RenderMultiProc(pixels, numProcs)
+
 	// main loop to render scene
 	for !window.ShouldClose() {
-
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+		pixels := make([]uint8, 4*imageWidth*imageHeight)
+		RotateAtoms(atoms, rotationX, rotationY)
+		RenderMultiProc(pixels, numProcs)
 		gl.DrawPixels(imageWidth, imageHeight, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(pixels))
 		gl.LoadIdentity()
 		window.SwapBuffers()
@@ -114,18 +112,21 @@ func mouseButtonCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Ac
 
 func cursorPosCallback(window *glfw.Window, xpos, ypos float64) {
 	if leftMouseButtonPressed {
-		camera.yaw += camera.speed * (xpos - lastX)
-		camera.pitch += camera.speed * (ypos - lastY)
-		if camera.pitch > 89.0 {
-			camera.pitch = 89.0
-		}
-		if camera.pitch < -89.0 {
-			camera.pitch = -89.0
-		}
-		camera.position.x += camera.radius * math.Cos(degToRad(camera.yaw)) * math.Cos(degToRad(camera.pitch))
-		camera.position.y = camera.radius * math.Sin(degToRad(camera.pitch))
-		camera.position.z += camera.radius * math.Sin(degToRad(camera.yaw)) * math.Cos(degToRad(camera.pitch))
+		dx := xpos - lastX
+		dy := ypos - lastY
+
+		// Adjust rotation angles based on mouse movement
+		rotationY += dx * 0.005
+		rotationX += dy * 0.005
+
+		// Limit rotation around X-axis to prevent flipping
+		rotationX = math.Max(-math.Pi/2, math.Min(math.Pi/2, rotationX))
+	} else {
+		rotationX = 0.0
+		rotationY = 0.0
 	}
+
+	lastX, lastY = xpos, ypos
 }
 
 func keyCallback(window *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
@@ -133,13 +134,13 @@ func keyCallback(window *glfw.Window, key glfw.Key, scancode int, action glfw.Ac
 		if key == glfw.KeyEscape {
 			window.SetShouldClose(true)
 		} else if key == glfw.KeyW {
-			light.position.y += 0.1
+			camera.position.y += 0.1
 		} else if key == glfw.KeyS {
-			light.position.y -= 0.1
+			camera.position.y -= 0.1
 		} else if key == glfw.KeyA {
-			light.position.x -= 0.1
-		} else if key == glfw.KeyD {
 			camera.position.x += 0.1
+		} else if key == glfw.KeyD {
+			camera.position.x -= 0.1
 		}
 	}
 }

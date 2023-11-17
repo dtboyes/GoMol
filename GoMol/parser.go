@@ -30,8 +30,22 @@ func ParsePDB(pdbFile string) []*Atom {
 		y, _ := strconv.ParseFloat(parts[7], 64)
 		y *= -1.0
 		z, _ := strconv.ParseFloat(parts[8], 64)
+		// excludes atoms that are not part of the protein backbone
 		if element == "H" || element == "C" || element == "N" || element == "O" || element == "S" {
-			newAtom := &Atom{number, element, residue, chain, sequence, x, y, z, 0.7}
+			radius := 0.0
+			// radii based on Pauling radii
+			if element == "H" {
+				radius = 1.2
+			} else if element == "C" {
+				radius = 1.7
+			} else if element == "N" {
+				radius = 1.55
+			} else if element == "O" {
+				radius = 1.52
+			} else if element == "S" {
+				radius = 1.8
+			}
+			newAtom := &Atom{number, element, residue, chain, sequence, x, y, z, radius}
 			atoms = append(atoms, newAtom)
 		}
 	}
