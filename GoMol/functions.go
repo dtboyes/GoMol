@@ -1,7 +1,10 @@
 package main
 
 import (
+	"encoding/csv"
 	"math"
+	"os"
+	"strconv"
 )
 
 func RenderMultiProc(pixels []uint8, numProcs int) {
@@ -200,88 +203,159 @@ func getQuerySequence(atoms []*Atom) string {
 	return sequence
 }
 
-// NeedlemanWunsch performs global sequence alignment using the Needleman-Wunsch algorithm
-func NeedlemanWunsch(seq1, seq2 string, match, mismatch, gap int) (alignment string, score int) {
-	rows, cols := len(seq1)+1, len(seq2)+1
+// AminoPair represents a pair of amino acids
+type AminoPair struct {
+	First  rune
+	Second rune
+}
 
-	// Initialize the score matrix
-	scoreMatrix := make([][]int, rows)
-	for i := range scoreMatrix {
-		scoreMatrix[i] = make([]int, cols)
+// BLOSUM62 scoring matrix
+var BLOSUM62 = make(map[AminoPair]int)
+
+// ReadBLOSUM62 reads the BLOSUM62 matrix from a CSV file
+func ReadBLOSUM62() error {
+	file, err := os.Open("/Users/shivank/go/src/Project/blosum62.csv")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	matrix, err := reader.ReadAll()
+	if err != nil {
+		return err
 	}
 
-	// Initialize the traceback matrix
-	traceback := make([][]rune, rows)
-	for i := range traceback {
-		traceback[i] = make([]rune, cols)
-	}
+	for i, row := range matrix {
+		if i == 0 {
+			continue // Skip the header row
+		}
 
-	// Initialize the first row and column of the score matrix
-	for i := 0; i < rows; i++ {
-		scoreMatrix[i][0] = i * gap
-		traceback[i][0] = 'U' // Up
-	}
-	for j := 0; j < cols; j++ {
-		scoreMatrix[0][j] = j * gap
-		traceback[0][j] = 'L' // Left
-	}
-
-	// Fill in the score and traceback matrices
-	for i := 1; i < rows; i++ {
-		for j := 1; j < cols; j++ {
-			matchScore := scoreMatrix[i-1][j-1] + match
-			mismatchScore := scoreMatrix[i-1][j-1] + mismatch
-			gapUpScore := scoreMatrix[i-1][j] + gap
-			gapLeftScore := scoreMatrix[i][j-1] + gap
-
-			// Determine the maximum score
-			maxScore := matchScore
-			traceback[i][j] = 'D' // Diagonal
-			if mismatchScore > maxScore {
-				maxScore = mismatchScore
-			}
-			if gapUpScore > maxScore {
-				maxScore = gapUpScore
-				traceback[i][j] = 'U' // Up
-			}
-			if gapLeftScore > maxScore {
-				maxScore = gapLeftScore
-				traceback[i][j] = 'L' // Left
+		for j, cell := range row {
+			if j == 0 || i == j {
+				continue // Skip the header column and diagonal
 			}
 
-			// Update the score matrix
-			scoreMatrix[i][j] = maxScore
+			score, err := strconv.Atoi(cell)
+			if err != nil {
+				return err
+			}
+
+			BLOSUM62[AminoPair{First: rune(matrix[0][j][0]), Second: rune(matrix[i][0][0])}] = score
+			BLOSUM62[AminoPair{First: rune(matrix[i][0][0]), Second: rune(matrix[0][j][0])}] = score
 		}
 	}
 
-	// Traceback to reconstruct the alignment
-	i, j := rows-1, cols-1
+	return nil
+}
+
+// score returns the BLOSUM62 score for a pair of amino acids
+func score(a, b rune) int {
+	return BLOSUM62[AminoPair{a, b}]
+}
+
+// max returns the maximum value from a slice of integers
+func max(values ...int) (maxVal int, maxIndex int) {
+	maxVal = values[0]
+	maxIndex = 0
+	for i, v := range values {
+		if v > maxVal {
+			maxVal = v
+			maxIndex = i
+		}
+	}
+	return maxVal, maxIndex
+}
+
+// needlemanWunsch performs the Needleman-Wunsch algorithm for sequence alignment
+func NeedlemanWunsch(seq1, seq2 string) (string, string, string, float64) {
+	gapPenalty := -4 // Define gap penalty
+
+	m, n := len(seq1), len(seq2)
+	dp := make([][]int, m+1) // Initialize the scoring matrix
+	for i := range dp {
+		dp[i] = make([]int, n+1)
+	}
+
+	// Initialize first row and column of the scoring matrix
+	for i := 0; i <= m; i++ {
+		dp[i][0] = i * gapPenalty
+	}
+	for j := 0; j <= n; j++ {
+		dp[0][j] = j * gapPenalty
+	}
+
+	// Fill the scoring matrix
+	for i := 1; i <= m; i++ {
+		for j := 1; j <= n; j++ {
+			match := dp[i-1][j-1] + score(rune(seq1[i-1]), rune(seq2[j-1]))
+			delete := dp[i-1][j] + gapPenalty
+			insert := dp[i][j-1] + gapPenalty
+			dp[i][j], _ = max(match, delete, insert)
+		}
+	}
+
+	//to find the best alignment and calculate alignment score
+	align1, align2, matchLine := "", "", ""
+	matchingCount := 0   // Count of matching residues
+	alignmentLength := 0 // Total length of the alignment
+	i, j := m, n
 	for i > 0 && j > 0 {
-		switch traceback[i][j] {
-		case 'D': // Diagonal
-			alignment = string(seq1[i-1]) + alignment
+		scoreCurrent := dp[i][j]
+		scoreDiagonal := dp[i-1][j-1]
+		//scoreUp := dp[i][j-1]
+		scoreLeft := dp[i-1][j]
+
+		if scoreCurrent == scoreDiagonal+score(rune(seq1[i-1]), rune(seq2[j-1])) {
+			// If it's a match, increment the matchingCount
+			if seq1[i-1] == seq2[j-1] {
+				matchingCount++
+				matchLine = "|" + matchLine // symbol for match
+			} else {
+				matchLine = " " + matchLine // mismatch symbol
+			}
+
+			alignmentLength++
+			align1 = string(seq1[i-1]) + align1
+			align2 = string(seq2[j-1]) + align2
 			i--
 			j--
-		case 'U': // Up
-			alignment = "-" + alignment
+		} else if scoreCurrent == scoreLeft+gapPenalty {
+			matchLine = " " + matchLine // mismatch symbol for gap
+			align1 = string(seq1[i-1]) + align1
+			align2 = "-" + align2
+			alignmentLength++
 			i--
-		case 'L': // Left
-			alignment = string(seq2[j-1]) + alignment
+		} else {
+			matchLine = " " + matchLine // mismatch symbol for gap
+			align1 = "-" + align1
+			align2 = string(seq2[j-1]) + align2
+			alignmentLength++
 			j--
 		}
 	}
 
-	// Handle remaining characters
+	// Complete the alignment for any remaining characters in seq1 or seq2
 	for i > 0 {
-		alignment = string(seq1[i-1]) + alignment
+		align1 = string(seq1[i-1]) + align1
+		align2 = "-" + align2
+		alignmentLength++
 		i--
 	}
 	for j > 0 {
-		alignment = string(seq2[j-1]) + alignment
+		align1 = "-" + align1
+		align2 = string(seq2[j-1]) + align2
+		alignmentLength++
 		j--
 	}
 
-	return alignment, scoreMatrix[rows-1][cols-1]
+	// Calculate the percentage similarity
+	percentSimilarity := 0.0
+	if alignmentLength > 0 {
+		percentSimilarity = float64(matchingCount) / float64(alignmentLength) * 100
+	}
+
+	return align1, align2, matchLine, percentSimilarity
 }
 
 func ConvertAminoAcidToSingleChar(aa string) string {
@@ -325,6 +399,7 @@ func ConvertAminoAcidToSingleChar(aa string) string {
 	case "VAL":
 		return "V"
 	default:
+		return ""
 	}
-	return ""
+
 }

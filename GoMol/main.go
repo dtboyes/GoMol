@@ -79,7 +79,12 @@ func main() {
 	atoms1_sequence := getQuerySequence(atoms1)
 	atoms2_sequence := getQuerySequence(atoms2)
 
-	fmt.Println(NeedlemanWunsch(atoms1_sequence, atoms2_sequence, 2, -1, -2))
+	alignedSeq1, alignedSeq2, matchLine, percentSimilarity := NeedlemanWunsch(atoms1_sequence, atoms2_sequence)
+	fmt.Println(alignedSeq1)
+	fmt.Println(matchLine)
+	fmt.Println(alignedSeq2)
+
+	fmt.Printf("Percentage Similarity: %.2f%%\n", percentSimilarity)
 
 	// initialize camera and light
 	camera = InitializeCamera(atoms1)
