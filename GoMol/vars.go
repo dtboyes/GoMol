@@ -1,5 +1,36 @@
 package main
 
+const (
+	imageWidth     = 800
+	aspectRatio    = 16.0 / 9.0
+	imageHeight    = imageWidth / aspectRatio
+	viewportHeight = 2.0
+	viewportWidth  = viewportHeight * float64(imageWidth) / float64(imageHeight)
+)
+
+var (
+	camera            *Camera
+	light             *Light
+	atoms1            []*Atom
+	atoms2            []*Atom
+	alignedSeq1       string
+	alignedSeq2       string
+	matchLine         string
+	percentSimilarity float64
+)
+
+var (
+	rotationX, rotationY   float64
+	leftMouseButtonPressed bool
+	lastX, lastY           float64
+)
+
+var (
+	colorByChain            = false
+	colorByAtom             = false
+	colorByDifferingRegions = false
+)
+
 type vec3 struct {
 	x, y, z float64
 }
@@ -34,7 +65,7 @@ type Atom struct {
 	element  string
 	amino    string
 	chain    string
-	sequence string
+	seqIndex int
 	x, y, z  float64
 	radius   float64
 }
@@ -48,3 +79,12 @@ type Collision struct {
 	normal vec3
 	color  vec3
 }
+
+// AminoPair represents a pair of amino acids
+type AminoPair struct {
+	First  rune
+	Second rune
+}
+
+// BLOSUM62 scoring matrix
+var BLOSUM62 = make(map[AminoPair]int)

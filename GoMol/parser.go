@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"regexp"
 	"strconv"
@@ -14,6 +13,7 @@ func ParsePDB(pdbFile string) []*Atom {
 	f, _ := os.Open(pdbFile)
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
+	currIndex := 0
 	for scanner.Scan() {
 		re := regexp.MustCompile(`\s+`)
 		line := scanner.Text()
@@ -25,7 +25,7 @@ func ParsePDB(pdbFile string) []*Atom {
 		element := parts[2]
 		amino := parts[3]
 		chain := parts[4]
-		sequence := parts[5]
+		seqIndex, _ := strconv.Atoi(parts[5])
 		x, _ := strconv.ParseFloat(parts[6], 64)
 		y, _ := strconv.ParseFloat(parts[7], 64)
 		y *= -1.0
@@ -45,7 +45,10 @@ func ParsePDB(pdbFile string) []*Atom {
 			} else if element == "S" {
 				radius = 1.8
 			}
-			newAtom := &Atom{number, element, amino, chain, sequence, x, y, z, radius}
+			newAtom := &Atom{number, element, amino, chain, currIndex, x, y, z, radius}
+			if seqIndex != currIndex {
+				currIndex++
+			}
 			atoms = append(atoms, newAtom)
 		}
 	}
@@ -87,7 +90,6 @@ func ParseCamera(cameraFile string) *Camera {
 			}
 		}
 	}
-	fmt.Println(cam)
 	return cam
 }
 
