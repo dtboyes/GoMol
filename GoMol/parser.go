@@ -13,7 +13,6 @@ func ParsePDB(pdbFile string) []*Atom {
 	f, _ := os.Open(pdbFile)
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
-	currIndex := 0
 	for scanner.Scan() {
 		re := regexp.MustCompile(`\s+`)
 		line := scanner.Text()
@@ -45,10 +44,7 @@ func ParsePDB(pdbFile string) []*Atom {
 			} else if element == "S" {
 				radius = 1.8
 			}
-			newAtom := &Atom{number, element, amino, chain, currIndex, x, y, z, radius}
-			if seqIndex != currIndex {
-				currIndex++
-			}
+			newAtom := &Atom{number, element, amino, chain, seqIndex, x, y, z, radius}
 			atoms = append(atoms, newAtom)
 		}
 	}

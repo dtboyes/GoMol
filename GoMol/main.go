@@ -90,11 +90,12 @@ func main() {
 	atoms1_sequence := GetQuerySequence(atoms1)
 	atoms2_sequence := GetQuerySequence(atoms2)
 
+	fmt.Println(len(atoms1_sequence))
+	fmt.Println(len(atoms2_sequence))
 	for _, val := range atoms1 {
 		val.amino = ConvertAminoAcidToSingleChar(val.amino)
 	}
 	alignedSeq1, alignedSeq2, matchLine, percentSimilarity = NeedlemanWunsch(atoms1_sequence, atoms2_sequence)
-
 	// initialize camera and light
 	camera = InitializeCamera(atoms1)
 	light = ParseLight("input/light.txt")

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"math"
 	"os"
 	"strconv"
@@ -43,6 +44,7 @@ func RenderScene(camera *Camera, light *Light, atoms1, atoms2 []*Atom, start, en
 }
 func RayColor(r *Ray, light *Light, camera *Camera, atoms1, atoms2 []*Atom) vec3 {
 	index := 0
+	current_aa := ""
 	for i := 0; i < len(atoms1); i++ {
 		collision := RaySphereCollision(r, atoms1[i])
 		if !collision.normal.EqualsZero() {
@@ -75,12 +77,15 @@ func RayColor(r *Ray, light *Light, camera *Camera, atoms1, atoms2 []*Atom) vec3
 					collision.color = LambertianShading(collision, light, camera, vec3{0.69, 0.22, 0.188})
 				} else {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
-					index++
 				}
 			} else {
 				collision.color = LambertianShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
 			}
 			return collision.color
+		}
+		if atoms1[i].amino != current_aa {
+			index++
+			current_aa = atoms1[i].amino
 		}
 	}
 	return vec3{0, 0, 0}
@@ -258,7 +263,7 @@ func max(values ...int) (maxVal int, maxIndex int) {
 
 // needlemanWunsch performs the Needleman-Wunsch algorithm for sequence alignment
 func NeedlemanWunsch(seq1, seq2 string) (string, string, string, float64) {
-	gapPenalty := -4 // Define gap penalty
+	gapPenalty := -10 // Define gap penalty
 
 	m, n := len(seq1), len(seq2)
 	dp := make([][]int, m+1) // Initialize the scoring matrix
@@ -363,6 +368,8 @@ func ConvertAminoAcidToSingleChar(aa string) string {
 	switch aa {
 	case "MET":
 		return "M"
+	case "ALA":
+		return "A"
 	case "ARG":
 		return "R"
 	case "ASN":
@@ -400,7 +407,8 @@ func ConvertAminoAcidToSingleChar(aa string) string {
 	case "VAL":
 		return "V"
 	default:
-		return ""
+		fmt.Println(aa)
+		panic("Invalid amino acid")
 	}
 
 }

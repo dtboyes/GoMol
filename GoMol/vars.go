@@ -28,7 +28,7 @@ var (
 var (
 	colorByChain            = false
 	colorByAtom             = false
-	colorByDifferingRegions = false
+	colorByDifferingRegions = true
 )
 
 type vec3 struct {
