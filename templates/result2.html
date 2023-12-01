@@ -1,0 +1,27 @@
+<!-- result2.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result 2</title>
+</head>
+<body>
+    <h1>Result 2 Page</h1>
+
+    <h2>Uploaded PDB File:</h2>
+    
+    {% if file_path %}
+        <p>The result of GoMOL software</p>
+
+        <!-- Display the image using the relative path -->
+        <img src="{{ url_for('static', filename='compeau-phillip-2023.jpg') }}" alt="Uploaded Image">
+
+    {% else %}
+        <p>No file path available.</p>
+    {% endif %}
+    
+    <a href="{{ url_for('home') }}">Go back to home</a>
+</body>
+</html>

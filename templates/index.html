@@ -1,0 +1,44 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="../static/index.css">
+    <style>
+      h1 {
+        text-align: center;
+        color: black;
+      }
+
+      .footer {
+        text-align: right;
+        font-size: 80%;
+        color: black;
+        margin-right: 10px; /* 여백 조절 */
+      }
+    </style>
+    <title>Welcome to GoMOL program</title>
+  </head>
+  <body>
+    <h1>GoMOL software</h1>
+    <p class="footer">Created by Boyes, Jeon, Katz, Sadasivan</p>
+
+    <form class="grid" action="/result" method="POST" enctype="multipart/form-data">
+
+      {% if name %}
+        <center>
+          <h3 style="color: blue;" class="let_space">Hello {{name}}, How was your day!!</h3>
+        </center> 
+      {% endif %}
+
+      <label for="file">Choose a PDB file:</label>
+      <input type="file" id="file" name="file" accept=".txt, .pdf, .doc">
+
+      <center><input class="file_submit" type="Submit"></center>
+    </form>
+
+    <br>
+    <br>
+    <br>
+  </body>
+</html>
+
+
