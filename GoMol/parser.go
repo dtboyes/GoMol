@@ -13,6 +13,8 @@ func ParsePDB(pdbFile string) []*Atom {
 	f, _ := os.Open(pdbFile)
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
+	current_ind := 0
+	current_seq_ind := 0
 	for scanner.Scan() {
 		re := regexp.MustCompile(`\s+`)
 		line := scanner.Text()
@@ -23,7 +25,13 @@ func ParsePDB(pdbFile string) []*Atom {
 		number, _ := strconv.Atoi(parts[1])
 		element := parts[2]
 		amino := parts[3]
+		if amino == "MET" || len(amino) == 4 {
+			continue
+		}
 		chain := parts[4]
+		if onlyChainA && chain != "A" {
+			break
+		}
 		seqIndex, _ := strconv.Atoi(parts[5])
 		x, _ := strconv.ParseFloat(parts[6], 64)
 		y, _ := strconv.ParseFloat(parts[7], 64)
@@ -44,8 +52,12 @@ func ParsePDB(pdbFile string) []*Atom {
 			} else if element == "S" {
 				radius = 1.8
 			}
-			newAtom := &Atom{number, element, amino, chain, seqIndex, x, y, z, radius}
+			newAtom := &Atom{number, element, amino, chain, current_ind, x, y, z, radius}
 			atoms = append(atoms, newAtom)
+		}
+		if current_seq_ind != seqIndex {
+			current_seq_ind = seqIndex
+			current_ind++
 		}
 	}
 	return atoms

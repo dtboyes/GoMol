@@ -7,16 +7,6 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
-type Atom struct {
-	number   int
-	element  string
-	amino    string
-	chain    string
-	seqIndex int
-	x, y, z  float64
-	radius   float64
-}
-
 func RunKabsch(samp1, samp2 []*Atom) ([]*Atom, []*Atom, float64) {
 	var s1 *mat.Dense
 	var s2 *mat.Dense
@@ -200,28 +190,4 @@ func CopyMatrix(a *mat.Dense) *mat.Dense {
 func matPrint(X mat.Matrix) {
 	fa := mat.Formatted(X, mat.Prefix(""), mat.Squeeze())
 	fmt.Printf("%v\n", fa)
-}
-
-func main() {
-	a := mat.NewDense(3, 3, []float64{
-		1, 2, 3,
-		4, 5, 6,
-		7, 8, 9,
-	})
-
-	b := mat.DenseCopyOf(a)
-
-	p, q, RMSD := kabsch(a, b)
-
-	fmt.Println("RMSD: ", RMSD)
-
-	fmt.Println("A after kabsch")
-	matPrint(p)
-	fmt.Println("B after kabsch")
-	matPrint(q)
-	fmt.Println("Difference: ")
-	var difference mat.Dense
-	difference.Sub(q, p)
-	matPrint(&difference)
-
 }

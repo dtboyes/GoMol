@@ -1,27 +1,28 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
 	"math"
-	"os"
-	"strconv"
 )
 
-func RenderMultiProc(pixels []uint8, numProcs int, atoms1, atoms2 []*Atom) {
+func RenderMultiProc(pixels []uint8, numProcs int, window1 bool) {
 	// pixels = make([]uint8, 4*imageWidth*imageHeight)
 	finished := make(chan bool, numProcs)
 	for i := 0; i < numProcs; i++ {
 		start_height := i * imageHeight / numProcs
 		end_height := (i + 1) * imageHeight / numProcs
-		go RenderScene(camera, light, atoms1, atoms2, start_height, end_height, pixels, finished)
+		if window1 {
+			go RenderScene(camera, light, atoms1, atoms1_sequence, alignedSeq2, start_height, end_height, pixels, finished)
+		} else {
+			go RenderScene(camera, light, atoms2, atoms2_sequence, alignedSeq1, start_height, end_height, pixels, finished)
+		}
 	}
 	for i := 0; i < numProcs; i++ {
 		<-finished
 	}
 }
 
-func RenderScene(camera *Camera, light *Light, atoms1, atoms2 []*Atom, start, end int, pixels []uint8, finished chan bool) {
+func RenderScene(camera *Camera, light *Light, atoms []*Atom, atoms_sequence, aligned_sequence string, start, end int, pixels []uint8, finished chan bool) {
 	for j := start; j < end; j++ {
 		for i := 0; i < imageWidth; i++ {
 			// pixel_center = pixel00Location + pixel_delta_u * i + pixel_delta_v * j
@@ -31,7 +32,7 @@ func RenderScene(camera *Camera, light *Light, atoms1, atoms2 []*Atom, start, en
 			// create a ray object
 			ray := &Ray{camera.position, ray_direction, Color{0, 0, 0, 1}}
 			// calculate the color of the ray
-			pixel_color := RayColor(ray, light, camera, atoms1, atoms2)
+			pixel_color := RayColor(ray, light, camera, atoms, atoms_sequence, aligned_sequence)
 
 			color := colorToRGBA(pixel_color)
 			pixels[4*(j*imageWidth+i)] = color[0]
@@ -42,38 +43,37 @@ func RenderScene(camera *Camera, light *Light, atoms1, atoms2 []*Atom, start, en
 	}
 	finished <- true
 }
-func RayColor(r *Ray, light *Light, camera *Camera, atoms1, atoms2 []*Atom) vec3 {
-	index := 0
-	current_aa := ""
-	for i := 0; i < len(atoms1); i++ {
-		collision := RaySphereCollision(r, atoms1[i])
+func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom, atoms_sequence, aligned_sequence string) vec3 {
+	for i := 0; i < len(atoms); i++ {
+		collision := RaySphereCollision(r, atoms[i])
 		if !collision.normal.EqualsZero() {
 			if colorByChain {
-				if atoms1[i].chain == "A" {
+				if atoms[i].chain == "A" {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.2, 1.0, 0.1})
-				} else if atoms1[i].chain == "B" {
+				} else if atoms[i].chain == "B" {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.1, 0.2, 1.0})
-				} else if atoms1[i].chain == "C" {
+				} else if atoms[i].chain == "C" {
 					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.1, 0.2})
-				} else if atoms1[i].chain == "D" {
+				} else if atoms[i].chain == "D" {
 					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.55, 0.0})
 				} else {
 					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 1.0, 1.0})
 				}
 			} else if colorByAtom {
-				if atoms1[i].element == "H" {
+				if atoms[i].element == "H" {
 					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 1.0, 1.0})
-				} else if atoms1[i].element == "C" {
+				} else if atoms[i].element == "C" {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.565, 0.565, 0.565})
-				} else if atoms1[i].element == "N" {
+				} else if atoms[i].element == "N" {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.188, 0.313, 0.9725})
-				} else if atoms1[i].element == "O" {
+				} else if atoms[i].element == "O" {
 					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.051, 0.051})
-				} else if atoms1[i].element == "S" {
+				} else if atoms[i].element == "S" {
 					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.784, 0.196})
 				}
 			} else if colorByDifferingRegions {
-				if atoms1[i].amino != string(alignedSeq2[index]) {
+				// fmt.Println(MaxSeqIndex(atoms))
+				if alignedSeq1[atoms[i].seqIndex] != alignedSeq2[atoms[i].seqIndex] {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.69, 0.22, 0.188})
 				} else {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
@@ -83,10 +83,7 @@ func RayColor(r *Ray, light *Light, camera *Camera, atoms1, atoms2 []*Atom) vec3
 			}
 			return collision.color
 		}
-		if atoms1[i].amino != current_aa {
-			index++
-			current_aa = atoms1[i].amino
-		}
+
 	}
 	return vec3{0, 0, 0}
 }
@@ -206,159 +203,13 @@ func colorToRGBA(c vec3) [4]uint8 {
 	}
 }
 
-// ReadBLOSUM62 reads the BLOSUM62 matrix from a CSV file
-func ReadBLOSUM62() error {
-	file, err := os.Open("/Users/shivank/go/src/Project/blosum62.csv")
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-	matrix, err := reader.ReadAll()
-	if err != nil {
-		return err
-	}
-
-	for i, row := range matrix {
-		if i == 0 {
-			continue // Skip the header row
-		}
-
-		for j, cell := range row {
-			if j == 0 || i == j {
-				continue // Skip the header column and diagonal
-			}
-
-			score, err := strconv.Atoi(cell)
-			if err != nil {
-				return err
-			}
-
-			BLOSUM62[AminoPair{First: rune(matrix[0][j][0]), Second: rune(matrix[i][0][0])}] = score
-			BLOSUM62[AminoPair{First: rune(matrix[i][0][0]), Second: rune(matrix[0][j][0])}] = score
-		}
-	}
-
-	return nil
-}
-
-// score returns the BLOSUM62 score for a pair of amino acids
-func score(a, b rune) int {
-	return BLOSUM62[AminoPair{a, b}]
-}
-
-// max returns the maximum value from a slice of integers
-func max(values ...int) (maxVal int, maxIndex int) {
-	maxVal = values[0]
-	maxIndex = 0
-	for i, v := range values {
-		if v > maxVal {
-			maxVal = v
-			maxIndex = i
-		}
-	}
-	return maxVal, maxIndex
-}
-
-// needlemanWunsch performs the Needleman-Wunsch algorithm for sequence alignment
-func NeedlemanWunsch(seq1, seq2 string) (string, string, string, float64) {
-	gapPenalty := -10 // Define gap penalty
-
-	m, n := len(seq1), len(seq2)
-	dp := make([][]int, m+1) // Initialize the scoring matrix
-	for i := range dp {
-		dp[i] = make([]int, n+1)
-	}
-
-	// Initialize first row and column of the scoring matrix
-	for i := 0; i <= m; i++ {
-		dp[i][0] = i * gapPenalty
-	}
-	for j := 0; j <= n; j++ {
-		dp[0][j] = j * gapPenalty
-	}
-
-	// Fill the scoring matrix
-	for i := 1; i <= m; i++ {
-		for j := 1; j <= n; j++ {
-			match := dp[i-1][j-1] + score(rune(seq1[i-1]), rune(seq2[j-1]))
-			delete := dp[i-1][j] + gapPenalty
-			insert := dp[i][j-1] + gapPenalty
-			dp[i][j], _ = max(match, delete, insert)
-		}
-	}
-
-	//to find the best alignment and calculate alignment score
-	align1, align2, matchLine := "", "", ""
-	matchingCount := 0   // Count of matching residues
-	alignmentLength := 0 // Total length of the alignment
-	i, j := m, n
-	for i > 0 && j > 0 {
-		scoreCurrent := dp[i][j]
-		scoreDiagonal := dp[i-1][j-1]
-		//scoreUp := dp[i][j-1]
-		scoreLeft := dp[i-1][j]
-
-		if scoreCurrent == scoreDiagonal+score(rune(seq1[i-1]), rune(seq2[j-1])) {
-			// If it's a match, increment the matchingCount
-			if seq1[i-1] == seq2[j-1] {
-				matchingCount++
-				matchLine = "|" + matchLine // symbol for match
-			} else {
-				matchLine = " " + matchLine // mismatch symbol
-			}
-
-			alignmentLength++
-			align1 = string(seq1[i-1]) + align1
-			align2 = string(seq2[j-1]) + align2
-			i--
-			j--
-		} else if scoreCurrent == scoreLeft+gapPenalty {
-			matchLine = " " + matchLine // mismatch symbol for gap
-			align1 = string(seq1[i-1]) + align1
-			align2 = "-" + align2
-			alignmentLength++
-			i--
-		} else {
-			matchLine = " " + matchLine // mismatch symbol for gap
-			align1 = "-" + align1
-			align2 = string(seq2[j-1]) + align2
-			alignmentLength++
-			j--
-		}
-	}
-
-	// Complete the alignment for any remaining characters in seq1 or seq2
-	for i > 0 {
-		align1 = string(seq1[i-1]) + align1
-		align2 = "-" + align2
-		alignmentLength++
-		i--
-	}
-	for j > 0 {
-		align1 = "-" + align1
-		align2 = string(seq2[j-1]) + align2
-		alignmentLength++
-		j--
-	}
-
-	// Calculate the percentage similarity
-	percentSimilarity := 0.0
-	if alignmentLength > 0 {
-		percentSimilarity = float64(matchingCount) / float64(alignmentLength) * 100
-	}
-
-	return align1, align2, matchLine, percentSimilarity
-}
-
 func GetQuerySequence(atoms []*Atom) string {
 	sequence := ""
-	current_aa := ""
+	current_ind := -100
 	for i := 0; i < len(atoms); i++ {
-		if atoms[i].amino != current_aa {
+		if atoms[i].seqIndex != current_ind {
 			sequence += ConvertAminoAcidToSingleChar(atoms[i].amino)
-			current_aa = atoms[i].amino
+			current_ind = atoms[i].seqIndex
 		}
 	}
 	return sequence
@@ -411,4 +262,14 @@ func ConvertAminoAcidToSingleChar(aa string) string {
 		panic("Invalid amino acid")
 	}
 
+}
+
+func MaxSeqIndex(atoms []*Atom) int {
+	max := 0
+	for i := 0; i < len(atoms); i++ {
+		if atoms[i].seqIndex > max {
+			max = atoms[i].seqIndex
+		}
+	}
+	return max
 }

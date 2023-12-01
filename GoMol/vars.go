@@ -13,6 +13,8 @@ var (
 	light             *Light
 	atoms1            []*Atom
 	atoms2            []*Atom
+	atoms1_sequence   string
+	atoms2_sequence   string
 	alignedSeq1       string
 	alignedSeq2       string
 	matchLine         string
@@ -29,6 +31,7 @@ var (
 	colorByChain            = false
 	colorByAtom             = false
 	colorByDifferingRegions = true
+	onlyChainA              = false
 )
 
 type vec3 struct {

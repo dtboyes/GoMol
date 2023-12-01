@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"gonum.org/v1/gonum/mat"
 )
 
 func init() {
@@ -33,6 +34,11 @@ func main() {
 	fmt.Print("Enter PDB ID #2: ")
 	fmt.Scanln(&input)
 	os.Args = append(os.Args, input)
+	fmt.Print("Only render chain A? (y/n): ")
+	fmt.Scanln(&input)
+	if input == "y" {
+		onlyChainA = true
+	}
 
 	// initialize number of processors
 	numProcs := runtime.NumCPU()
@@ -45,6 +51,7 @@ func main() {
 	if err != nil {
 		fmt.Println("Error downloading PDB file:", err)
 	}
+	pdbURL = "https://files.rcsb.org/download/" + os.Args[2] + ".pdb"
 	localPath = "pdbfiles/" + os.Args[2] + ".pdb"
 	err = downloadPDB(pdbURL, localPath)
 	if err != nil {
@@ -72,7 +79,6 @@ func main() {
 
 	// parse pdb file to get list of atom objects
 	atoms1 = ParsePDB("pdbfiles/" + os.Args[1] + ".pdb")
-
 	atoms2 = ParsePDB("pdbfiles/" + os.Args[2] + ".pdb")
 
 	menu := `
@@ -84,18 +90,17 @@ func main() {
 	3. Press "3" - Color protein by differing regions from sequence alignment
 	==============================
 	`
-
 	fmt.Println(menu)
 
-	atoms1_sequence := GetQuerySequence(atoms1)
-	atoms2_sequence := GetQuerySequence(atoms2)
+	atoms1_sequence = GetQuerySequence(atoms1)
+	atoms2_sequence = GetQuerySequence(atoms2)
 
-	fmt.Println(len(atoms1_sequence))
-	fmt.Println(len(atoms2_sequence))
-	for _, val := range atoms1 {
-		val.amino = ConvertAminoAcidToSingleChar(val.amino)
-	}
 	alignedSeq1, alignedSeq2, matchLine, percentSimilarity = NeedlemanWunsch(atoms1_sequence, atoms2_sequence)
+	fmt.Println(alignedSeq1)
+	fmt.Println(matchLine)
+	fmt.Println(alignedSeq2)
+	fmt.Printf("The percent identity of the two sequences using Needleman-Wunsch is %.2f%%\n\n", percentSimilarity)
+
 	// initialize camera and light
 	camera = InitializeCamera(atoms1)
 	light = ParseLight("input/light.txt")
@@ -107,11 +112,33 @@ func main() {
 	window.SetScrollCallback(scrollCallback)
 
 	// main loop to render scene
+
+	a := mat.NewDense(3, 3, []float64{
+		1, 2, 3,
+		4, 5, 6,
+		7, 8, 9,
+	})
+
+	b := mat.DenseCopyOf(a)
+
+	p, q, RMSD := kabsch(a, b)
+
+	fmt.Println("RMSD: ", RMSD)
+
+	fmt.Println("A after kabsch")
+	matPrint(p)
+	fmt.Println("B after kabsch")
+	matPrint(q)
+	fmt.Println("Difference: ")
+	var difference mat.Dense
+	difference.Sub(q, p)
+	matPrint(&difference)
+
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		RotateAtoms(atoms1, rotationX, rotationY)
 		pixels := make([]uint8, 4*imageWidth*imageHeight)
-		RenderMultiProc(pixels, numProcs, atoms1, atoms2)
+		RenderMultiProc(pixels, numProcs, true)
 		gl.DrawPixels(imageWidth, imageHeight, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(pixels))
 		gl.LoadIdentity()
 		window.SwapBuffers()
