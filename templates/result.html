@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result</title>
+</head>
+<body>
+    <h1>Upload Successful</h1>
+    <h1>Now processing the result...</h1>
+
+    {% if file_path %}
+        <p>Uploaded PDB file path: {{ file_path }}</p>
+    {% endif %}
+
+    <!-- See the result button -->
+    <form action="{{ url_for('result2', name=name, file_path=file_path) }}" method="get">
+        <button type="submit">See the Result</button>
+    </form>
+
+    <a href="{{ url_for('home') }}">Go back to home</a>
+</body>
+</html>
