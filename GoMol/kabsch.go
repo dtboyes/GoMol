@@ -88,7 +88,7 @@ func kabsch(p, q *mat.Dense) (*mat.Dense, *mat.Dense, float64) {
 
 	for i := 0; i < b.RawMatrix().Rows; i++ {
 		for j := 0; j < b.RawMatrix().Cols; j++ {
-			b.Set(i, j, b.At(i, j)-bColAvgs[j])
+			b.Set(i, j, b.At(i, j)+bColAvgs[j])
 		}
 	}
 
@@ -98,7 +98,7 @@ func kabsch(p, q *mat.Dense) (*mat.Dense, *mat.Dense, float64) {
 
 	for i := 0; i < a.RawMatrix().Rows; i++ {
 		for j := 0; j < a.RawMatrix().Cols; j++ {
-			a.Set(i, j, a.At(i, j)-aColAvgs[j])
+			a.Set(i, j, a.At(i, j)+aColAvgs[j])
 		}
 	}
 
@@ -136,6 +136,7 @@ func GenerateAtomSlice(matrix *mat.Dense, pdbInfo []*Atom) []*Atom {
 			x:        matrix.At(i, 0),
 			y:        matrix.At(i, 1),
 			z:        matrix.At(i, 2),
+			radius:   pdbInfo[i].radius,
 		}
 	}
 

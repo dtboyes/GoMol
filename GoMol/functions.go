@@ -11,9 +11,9 @@ func RenderMultiProc(pixels []uint8, numProcs int, window1 bool) {
 	for i := 0; i < numProcs; i++ {
 		start_height := i * imageHeight / numProcs
 		end_height := (i + 1) * imageHeight / numProcs
-		if window1 {
+		if renderProtein1 || renderBoth {
 			go RenderScene(camera, light, atoms1, atoms1_sequence, alignedSeq2, start_height, end_height, pixels, finished)
-		} else {
+		} else if renderProtein2 {
 			go RenderScene(camera, light, atoms2, atoms2_sequence, alignedSeq1, start_height, end_height, pixels, finished)
 		}
 	}
@@ -46,7 +46,7 @@ func RenderScene(camera *Camera, light *Light, atoms []*Atom, atoms_sequence, al
 func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom, atoms_sequence, aligned_sequence string) vec3 {
 	for i := 0; i < len(atoms); i++ {
 		collision := RaySphereCollision(r, atoms[i])
-		if !collision.normal.EqualsZero() {
+		if !collision.getNormal().EqualsZero() {
 			if colorByChain {
 				if atoms[i].chain == "A" {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.2, 0.7, 0.1})
@@ -60,9 +60,7 @@ func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom, atoms_sequenc
 					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 1.0, 1.0})
 				}
 			} else if colorByAtom {
-				if atoms[i].element == "H" {
-					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 1.0, 1.0})
-				} else if atoms[i].element == "C" {
+				if atoms[i].element == "C" {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.565, 0.565, 0.565})
 				} else if atoms[i].element == "N" {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.188, 0.313, 0.9725})
@@ -129,9 +127,9 @@ func LambertianShading(collision Collision, light *Light, camera *Camera, color 
 	lightDirection := light.getPosition().Subtract(collision.point).Normalize()
 
 	cameraDirection := camera.getPosition().Subtract(collision.point).Normalize()
-	reflectDirection := lightDirection.Subtract(collision.normal.Scale(2.0 * lightDirection.Dot(collision.normal))).Normalize()
+	reflectDirection := lightDirection.Subtract(collision.getNormal().Scale(2.0 * lightDirection.Dot(collision.getNormal()))).Normalize()
 	// diffuse = color * max(0, collision.normal dot lightDirection) * totalAttenuation * lightIntensity
-	diffuse := color.Scale(math.Max(0.0, collision.normal.Dot(lightDirection))).Scale(totalAttenuation * lightIntensity)
+	diffuse := color.Scale(math.Max(0.0, collision.getNormal().Dot(lightDirection))).Scale(totalAttenuation * lightIntensity)
 	ambient := color.Scale(0.6)
 	specular := specularColor.Scale(math.Pow(math.Max(0.0, reflectDirection.Dot(cameraDirection)), 5.0)).Scale(totalAttenuation * lightIntensity)
 	color = diffuse.Add(ambient).Add(specular)

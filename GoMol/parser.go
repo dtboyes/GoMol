@@ -41,9 +41,7 @@ func ParsePDB(pdbFile string) []*Atom {
 		if element == "H" || element == "C" || element == "N" || element == "O" || element == "S" {
 			radius := 0.0
 			// radii based on Pauling radii
-			if element == "H" {
-				radius = 1.2
-			} else if element == "C" {
+			if element == "C" {
 				radius = 1.7
 			} else if element == "N" {
 				radius = 1.55

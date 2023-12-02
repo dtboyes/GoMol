@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"gonum.org/v1/gonum/mat"
 )
 
 func init() {
@@ -102,7 +101,7 @@ func main() {
 	fmt.Printf("The percent identity of the two sequences using Needleman-Wunsch is %.2f%%\n\n", percentSimilarity)
 
 	// initialize camera and light
-	camera = InitializeCamera(atoms1)
+	// camera = InitializeCamera(atoms1)
 	light = ParseLight("input/light.txt")
 	light = InitializeLight(atoms1)
 
@@ -112,29 +111,29 @@ func main() {
 	window.SetScrollCallback(scrollCallback)
 
 	// main loop to render scene
-
-	a := mat.NewDense(3, 3, []float64{
-		1, 2, 3,
-		4, 5, 6,
-		7, 8, 9,
-	})
-
-	b := mat.DenseCopyOf(a)
-
-	p, q, RMSD := kabsch(a, b)
-
-	fmt.Println("RMSD: ", RMSD)
-
-	fmt.Println("A after kabsch")
-	matPrint(p)
-	fmt.Println("B after kabsch")
-	matPrint(q)
-	fmt.Println("Difference: ")
-	var difference mat.Dense
-	difference.Sub(q, p)
-	matPrint(&difference)
-
+	var results1, results2, resultsFinal []*Atom
+	var rmsd float64
+	if len(atoms1_sequence) == len(atoms2_sequence) {
+		results1, results2, rmsd = RunKabsch(atoms1, atoms2)
+		resultsFinal = append(results1, results2...)
+		atoms1_len := len(atoms1)
+		for i := atoms1_len; i < len(resultsFinal); i++ {
+			resultsFinal[i].x -= 50
+		}
+	}
+	tempAtoms1 := atoms1
+	tempAtoms2 := atoms2
+	tempAtomsResult := resultsFinal
+	fmt.Println("RMSD from Kabsch algorithm: ", rmsd)
+	camera = InitializeCamera(atoms1)
 	for !window.ShouldClose() {
+		if renderProtein1 {
+			atoms1 = tempAtoms1
+		} else if renderProtein2 {
+			atoms1 = tempAtoms2
+		} else if renderBoth {
+			atoms1 = tempAtomsResult
+		}
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		RotateAtoms(atoms1, rotationX, rotationY)
 		pixels := make([]uint8, 4*imageWidth*imageHeight)
@@ -181,30 +180,42 @@ func keyCallback(window *glfw.Window, key glfw.Key, scancode int, action glfw.Ac
 	if action == glfw.Press || action == glfw.Repeat {
 		if key == glfw.KeyEscape {
 			window.SetShouldClose(true)
-		} else if key == glfw.KeyW {
+		} else if key == glfw.KeyW && action == glfw.Press {
 			camera.position.y += 0.1
-		} else if key == glfw.KeyS {
+		} else if key == glfw.KeyS && action == glfw.Press {
 			camera.position.y -= 0.1
-		} else if key == glfw.KeyA {
+		} else if key == glfw.KeyA && action == glfw.Press {
 			camera.position.x += 0.1
-		} else if key == glfw.KeyD {
+		} else if key == glfw.KeyD && action == glfw.Press {
 			camera.position.x -= 0.1
-		} else if key == glfw.Key1 {
+		} else if key == glfw.Key1 && action == glfw.Press {
 			colorByChain = true
 			colorByAtom = false
 			colorByDifferingRegions = false
-		} else if key == glfw.Key2 {
+		} else if key == glfw.Key2 && action == glfw.Press {
 			colorByChain = false
 			colorByAtom = true
 			colorByDifferingRegions = false
-		} else if key == glfw.Key3 {
+		} else if key == glfw.Key3 && action == glfw.Press {
 			colorByChain = false
 			colorByAtom = false
 			colorByDifferingRegions = true
-		} else if key == glfw.Key4 {
+		} else if key == glfw.Key4 && action == glfw.Press {
 			colorByChain = false
 			colorByAtom = false
 			colorByDifferingRegions = false
+		} else if key == glfw.KeyF1 && action == glfw.Press {
+			renderProtein1 = true
+			renderProtein2 = false
+			renderBoth = false
+		} else if key == glfw.KeyF2 && action == glfw.Press {
+			renderProtein1 = false
+			renderProtein2 = true
+			renderBoth = false
+		} else if key == glfw.KeyF3 && action == glfw.Press {
+			renderProtein1 = false
+			renderProtein2 = false
+			renderBoth = true
 		}
 	}
 }
