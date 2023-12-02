@@ -49,7 +49,7 @@ func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom, atoms_sequenc
 		if !collision.normal.EqualsZero() {
 			if colorByChain {
 				if atoms[i].chain == "A" {
-					collision.color = LambertianShading(collision, light, camera, vec3{0.2, 1.0, 0.1})
+					collision.color = LambertianShading(collision, light, camera, vec3{0.2, 0.7, 0.1})
 				} else if atoms[i].chain == "B" {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.1, 0.2, 1.0})
 				} else if atoms[i].chain == "C" {
@@ -123,7 +123,7 @@ func LambertianShading(collision Collision, light *Light, camera *Camera, color 
 	quadraticAttenuation := 0.0001
 	lightIntensity := 1.0
 	specularColor := vec3{1.0, 1.0, 1.0}
-	dist := light.getPosition().Subtract(collision.point).Length()
+	dist := light.getPosition().Subtract(collision.getPoint()).Length()
 	totalAttenuation := 1.0 / (constantAttenuation + linearAttenuation*dist + quadraticAttenuation*dist*dist)
 	// // lightDirection = unit vector of (light.position - collision.point)
 	lightDirection := light.getPosition().Subtract(collision.point).Normalize()
@@ -133,7 +133,7 @@ func LambertianShading(collision Collision, light *Light, camera *Camera, color 
 	// diffuse = color * max(0, collision.normal dot lightDirection) * totalAttenuation * lightIntensity
 	diffuse := color.Scale(math.Max(0.0, collision.normal.Dot(lightDirection))).Scale(totalAttenuation * lightIntensity)
 	ambient := color.Scale(0.6)
-	specular := specularColor.Scale(math.Pow(math.Max(0.0, reflectDirection.Dot(cameraDirection)), 1000)).Scale(totalAttenuation * lightIntensity)
+	specular := specularColor.Scale(math.Pow(math.Max(0.0, reflectDirection.Dot(cameraDirection)), 5.0)).Scale(totalAttenuation * lightIntensity)
 	color = diffuse.Add(ambient).Add(specular)
 	return color
 }
