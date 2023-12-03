@@ -17,7 +17,6 @@ func init() {
 }
 
 func main() {
-	var input string
 	title := `
 	===============================
 		      GoMol
