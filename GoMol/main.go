@@ -6,7 +6,6 @@ import (
 	"math"
 	"os"
 	"runtime"
-	"strings"
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
@@ -17,7 +16,7 @@ func init() {
 }
 
 func main() {
-	var input string
+	// var input string
 	title := `
 	===============================
 		      GoMol
@@ -27,10 +26,6 @@ func main() {
 	===============================
 	`
 	fmt.Println(title)
-
-	if os.Args[3] == "y" {
-		onlyChainA = true
-	}
 
 	// initialize number of processors
 	numProcs := runtime.NumCPU()
@@ -57,7 +52,7 @@ func main() {
 
 	glfw.WindowHint(glfw.Resizable, glfw.False)
 
-	window, err := glfw.CreateWindow(imageWidth, imageHeight, "GoMol: "+strings.ToUpper(os.Args[1]), nil, nil)
+	window, err := glfw.CreateWindow(imageWidth, imageHeight, "GoMol", nil, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -103,9 +98,11 @@ func main() {
 	window.SetKeyCallback(keyCallback)
 	window.SetScrollCallback(scrollCallback)
 
-	// main loop to render scene
 	var results1, results2, resultsFinal []*Atom
 	var rmsd float64
+	fmt.Println(len(atoms1_sequence))
+	fmt.Println(len(atoms2_sequence))
+
 	if len(atoms1_sequence) == len(atoms2_sequence) {
 		results1, results2, rmsd = RunKabsch(atoms1, atoms2)
 		resultsFinal = append(results1, results2...)
@@ -114,19 +111,25 @@ func main() {
 			resultsFinal[i].x -= 50
 		}
 	}
-	tempAtoms1 := atoms1
-	tempAtoms2 := atoms2
-	tempAtomsResult := resultsFinal
-	fmt.Println("RMSD from Kabsch algorithm: ", rmsd)
-	camera = InitializeCamera(atoms1)
-	for !window.ShouldClose() {
-		if renderProtein1 {
-			atoms1 = tempAtoms1
-		} else if renderProtein2 {
-			atoms1 = tempAtoms2
-		} else if renderBoth {
-			atoms1 = tempAtomsResult
+	tempAtoms1 := make([]*Atom, len(atoms1))
+	copy(tempAtoms1, atoms1)
+	tempResults := make([]*Atom, 0)
+	for _, val := range resultsFinal {
+		if val.element == "CA" {
+			tempResults = append(tempResults, val)
 		}
+	}
+	fmt.Println("RMSD from Kabsch algorithm: ", rmsd)
+
+	for !window.ShouldClose() {
+		if renderProtein2 {
+			atoms1 = atoms2
+		} else if renderBoth {
+			atoms1 = tempResults
+		} else {
+			atoms1 = tempAtoms1
+		}
+		camera = InitializeCamera(atoms1)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		RotateAtoms(atoms1, rotationX, rotationY)
 		pixels := make([]uint8, 4*imageWidth*imageHeight)

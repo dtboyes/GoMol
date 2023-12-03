@@ -32,10 +32,9 @@ var (
 	colorByAtom             = false
 	colorByDifferingRegions = true
 	onlyChainA              = false
-
-	renderProtein1 = false
-	renderProtein2 = false
-	renderBoth     = true
+	renderProtein1          = false
+	renderProtein2          = false
+	renderBoth              = true
 )
 
 type vec3 struct {

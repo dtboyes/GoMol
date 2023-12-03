@@ -38,10 +38,10 @@ func ParsePDB(pdbFile string) []*Atom {
 		y *= -1.0
 		z, _ := strconv.ParseFloat(parts[8], 64)
 		// excludes atoms that are not part of the protein backbone
-		if element == "H" || element == "C" || element == "N" || element == "O" || element == "S" {
+		if element == "CA" || element == "N" || element == "O" || element == "S" {
 			radius := 0.0
 			// radii based on Pauling radii
-			if element == "C" {
+			if element == "CA" {
 				radius = 1.7
 			} else if element == "N" {
 				radius = 1.55

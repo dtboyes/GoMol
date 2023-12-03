@@ -60,7 +60,7 @@ func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom, atoms_sequenc
 					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 1.0, 1.0})
 				}
 			} else if colorByAtom {
-				if atoms[i].element == "C" {
+				if atoms[i].element == "CA" {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.565, 0.565, 0.565})
 				} else if atoms[i].element == "N" {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.188, 0.313, 0.9725})

@@ -3,14 +3,12 @@ package main
 import (
 	"encoding/csv"
 	"os"
-	"path/filepath"
 	"strconv"
 )
 
 // ReadBLOSUM62 reads the BLOSUM62 matrix from a CSV file
 func ReadBLOSUM62() error {
-	filePath := filepath.Join(".", "blosum62.csv")
-	file, err := os.Open(filePath)
+	file, err := os.Open("/Users/dtboyes/go/src/GoMol//GoMol/blosum62.csv")
 	if err != nil {
 		panic(err)
 	}
