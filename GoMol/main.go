@@ -106,10 +106,6 @@ func main() {
 	if len(atoms1_sequence) == len(atoms2_sequence) {
 		results1, results2, rmsd = RunKabsch(atoms1, atoms2)
 		resultsFinal = append(results1, results2...)
-		atoms1_len := len(atoms1)
-		for i := atoms1_len; i < len(resultsFinal); i++ {
-			resultsFinal[i].x -= 50
-		}
 	}
 	tempAtoms1 := make([]*Atom, len(atoms1))
 	copy(tempAtoms1, atoms1)
@@ -124,7 +120,7 @@ func main() {
 	for !window.ShouldClose() {
 		if renderProtein2 {
 			atoms1 = atoms2
-		} else if renderBoth {
+		} else if renderKabsch {
 			atoms1 = tempResults
 		} else {
 			atoms1 = tempAtoms1
@@ -203,15 +199,15 @@ func keyCallback(window *glfw.Window, key glfw.Key, scancode int, action glfw.Ac
 		} else if key == glfw.KeyF1 && action == glfw.Press {
 			renderProtein1 = true
 			renderProtein2 = false
-			renderBoth = false
+			renderKabsch = false
 		} else if key == glfw.KeyF2 && action == glfw.Press {
 			renderProtein1 = false
 			renderProtein2 = true
-			renderBoth = false
+			renderKabsch = false
 		} else if key == glfw.KeyF3 && action == glfw.Press {
 			renderProtein1 = false
 			renderProtein2 = false
-			renderBoth = true
+			renderKabsch = true
 		}
 	}
 }

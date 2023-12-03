@@ -11,7 +11,7 @@ func RenderMultiProc(pixels []uint8, numProcs int, window1 bool) {
 	for i := 0; i < numProcs; i++ {
 		start_height := i * imageHeight / numProcs
 		end_height := (i + 1) * imageHeight / numProcs
-		if renderProtein1 || renderBoth {
+		if renderProtein1 || renderKabsch {
 			go RenderScene(camera, light, atoms1, atoms1_sequence, alignedSeq2, start_height, end_height, pixels, finished)
 		} else if renderProtein2 {
 			go RenderScene(camera, light, atoms2, atoms2_sequence, alignedSeq1, start_height, end_height, pixels, finished)
@@ -70,12 +70,21 @@ func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom, atoms_sequenc
 					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.784, 0.196})
 				}
 			} else if colorByDifferingRegions {
-				// fmt.Println(MaxSeqIndex(atoms))
 				if alignedSeq1[atoms[i].seqIndex] != alignedSeq2[atoms[i].seqIndex] {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.69, 0.22, 0.188})
 				} else {
 					collision.color = LambertianShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
 				}
+			} else if renderKabsch {
+				if i < len(atoms1_sequence) {
+					collision.color = LambertianShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
+				} else {
+					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.22, 1.0})
+				}
+			} else if renderProtein1 {
+				collision.color = LambertianShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
+			} else if renderProtein2 {
+				collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.22, 1.0})
 			} else {
 				collision.color = LambertianShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
 			}
