@@ -8,6 +8,9 @@
 <body>
     <h1>Upload Successful</h1>
     <h1>Now processing the result...</h1>
+    
+    
+
 
 <!-- See the result button -->
 <form action="{{ url_for('result2', name=name, file_path=file_path) }}" method="get" style="display: inline-block; margin-right: 10px;">
@@ -17,6 +20,13 @@
 <!-- Go back to home link -->
 <a href="{{ url_for('home') }}" style="display: inline-block; padding: 10px 20px; background-color: blue; color: white; text-decoration: none;">Go back to home</a>
 
+
+    <h1>Sequences</h1>
+    <ul>
+        <h1>{{ seq1 }}</h1>
+        <h1>{{ match }}</h1>
+        <h1>{{ seq2 }}</h1>
+    </ul>
     <!-- Additional Options Section -->
     <div>
         <h2>1. Coloring Options</h2>

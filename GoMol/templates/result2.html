@@ -6,19 +6,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Result 2</title>
+    <style>
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .button-container button,
+        .button-container a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: green; /* Button color */
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .button-container a {
+            background-color: blue; /* Link color */
+        }
+
+        .button-container button:hover,
+        .button-container a:hover {
+            background-color: darkgreen; /* Button hover color */
+        }
+
+        .button-container a:hover {
+            background-color: darkblue; /* Link hover color */
+        }
+    </style>
 </head>
 <body>
    
     <h1>Thank You for Using Our Software</h1>
 
-     <!-- Go back to home link -->
-<a href="{{ url_for('home') }}" style="display: inline-block; padding: 10px 20px; background-color: blue; color: white; text-decoration: none;">Go back to home</a>
+    <h1>Sequences Alignment Result</h1>
+    <table border="1">        
+        <tr>
+            <th>AlignedSeq1</th>
+            {% for char in seq1 %}
+                <td style="font-size: 14px;">{{ char }}</td>
+            {% endfor %}
+        </tr>
+        
+        <tr>
+            <th>matchLine</th>
+            {% for char in match %}
+                <td style="font-size: 14px;">{{ char }}</td>
+            {% endfor %}
+        </tr>
+        
+        <tr>
+            <th>AlignedSeq2</th>
+            {% for char in seq2 %}
+                <td style="font-size: 14px;">{{ char }}</td>
+            {% endfor %}
+        </tr>
+    </table>
 
+    <!-- Button container for styling -->
+    <div class="button-container">
+        <!-- Download Result button -->
+        <form action="{{ url_for('result') }}" method="post">
+            <button type="submit">Download Result</button>
+        </form>
+
+        <!-- Go back to home link -->
+        <a href="{{ url_for('home') }}">Go back to home</a>
+    </div>
 
     <h1></h1>
     <img src="{{ url_for('static', filename='compeau-phillip-2023.jpg') }}" alt="Uploaded Image">
-
-    
 
 </body>
 </html>
