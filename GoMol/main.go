@@ -27,15 +27,8 @@ func main() {
 	===============================
 	`
 	fmt.Println(title)
-	fmt.Print("Enter PDB ID #1: ")
-	fmt.Scanln(&input)
-	os.Args = append(os.Args, input)
-	fmt.Print("Enter PDB ID #2: ")
-	fmt.Scanln(&input)
-	os.Args = append(os.Args, input)
-	fmt.Print("Only render chain A? (y/n): ")
-	fmt.Scanln(&input)
-	if input == "y" {
+
+	if os.Args[3] == "y" {
 		onlyChainA = true
 	}
 

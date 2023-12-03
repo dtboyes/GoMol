@@ -8,20 +8,17 @@
     <title>Result 2</title>
 </head>
 <body>
-    <h1>Result 2 Page</h1>
+   
+    <h1>Thank You for Using Our Software</h1>
 
-    <h2>Uploaded PDB File:</h2>
+     <!-- Go back to home link -->
+<a href="{{ url_for('home') }}" style="display: inline-block; padding: 10px 20px; background-color: blue; color: white; text-decoration: none;">Go back to home</a>
+
+
+    <h1></h1>
+    <img src="{{ url_for('static', filename='compeau-phillip-2023.jpg') }}" alt="Uploaded Image">
+
     
-    {% if file_path %}
-        <p>The result of GoMOL software</p>
 
-        <!-- Display the image using the relative path -->
-        <img src="{{ url_for('static', filename='compeau-phillip-2023.jpg') }}" alt="Uploaded Image">
-
-    {% else %}
-        <p>No file path available.</p>
-    {% endif %}
-    
-    <a href="{{ url_for('home') }}">Go back to home</a>
 </body>
 </html>
