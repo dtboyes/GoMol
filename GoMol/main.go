@@ -118,7 +118,7 @@ func main() {
 		}
 	}
 	fmt.Println("RMSD from Kabsch algorithm: ", rmsd)
-
+	camera = InitializeCamera(atoms1)
 	for !window.ShouldClose() {
 		if renderProtein2 {
 			atoms1 = atoms2
@@ -127,7 +127,7 @@ func main() {
 		} else {
 			atoms1 = tempAtoms1
 		}
-		camera = InitializeCamera(atoms1)
+
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		RotateAtoms(atoms1, rotationX, rotationY)
 		pixels := make([]uint8, 4*imageWidth*imageHeight)
