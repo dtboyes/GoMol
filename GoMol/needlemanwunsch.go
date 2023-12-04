@@ -8,7 +8,7 @@ import (
 
 // ReadBLOSUM62 reads the BLOSUM62 matrix from a CSV file
 func ReadBLOSUM62() error {
-	file, err := os.Open("/Users/dtboyes/go/src/GoMol//GoMol/blosum62.csv")
+	file, err := os.Open("blosum62.csv")
 	if err != nil {
 		panic(err)
 	}

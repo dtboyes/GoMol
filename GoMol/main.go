@@ -85,6 +85,9 @@ func main() {
 	fmt.Println(alignedSeq1)
 	fmt.Println(matchLine)
 	fmt.Println(alignedSeq2)
+
+	saveResultToFile(alignedSeq1, matchLine, alignedSeq2)
+
 	fmt.Printf("The percent identity of the two sequences using Needleman-Wunsch is %.2f%%\n\n", percentSimilarity)
 
 	// initialize camera and light
@@ -145,6 +148,14 @@ func mouseButtonCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Ac
 		} else if action == glfw.Release {
 			leftMouseButtonPressed = false
 		}
+	}
+}
+
+func saveResultToFile(alignedSeq1, matchLine, alignedSeq2 string) {
+	result := alignedSeq1 + "\n" + matchLine + "\n" + alignedSeq2
+	err := os.WriteFile("result.txt", []byte(result), 0644)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 

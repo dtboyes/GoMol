@@ -5,7 +5,7 @@ import subprocess
 app = Flask(__name__)
 
 #change your path based on the location of your file
-UPLOAD_FOLDER = r"C:\Users\BLUE OCEAN\Desktop\FlaskWeb\GoMol-main\GoMol-main\GoMol"
+UPLOAD_FOLDER = r"C:\Users\BLUE OCEAN\Desktop\study\CMU\go\GoMol\GoMol"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
