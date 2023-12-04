@@ -60,16 +60,14 @@ func max(values ...int) (maxVal int, maxIndex int) {
 }
 
 // needlemanWunsch performs the Needleman-Wunsch algorithm for sequence alignment
+// needlemanWunsch performs the Needleman-Wunsch algorithm for sequence alignment
 func NeedlemanWunsch(seq1, seq2 string) (string, string, string, float64) {
-	ReadBLOSUM62()   // Read the BLOSUM62 matrix
-	gapPenalty := -4 // Define gap penalty
-
+	gapPenalty := -10 // Define gap penalty
 	m, n := len(seq1), len(seq2)
 	dp := make([][]int, m+1) // Initialize the scoring matrix
 	for i := range dp {
 		dp[i] = make([]int, n+1)
 	}
-
 	// Initialize first row and column of the scoring matrix
 	for i := 0; i <= m; i++ {
 		dp[i][0] = i * gapPenalty
@@ -77,7 +75,6 @@ func NeedlemanWunsch(seq1, seq2 string) (string, string, string, float64) {
 	for j := 0; j <= n; j++ {
 		dp[0][j] = j * gapPenalty
 	}
-
 	// Fill the scoring matrix
 	for i := 1; i <= m; i++ {
 		for j := 1; j <= n; j++ {
@@ -87,7 +84,6 @@ func NeedlemanWunsch(seq1, seq2 string) (string, string, string, float64) {
 			dp[i][j], _ = max(match, delete, insert)
 		}
 	}
-
 	//to find the best alignment and calculate alignment score
 	align1, align2, matchLine := "", "", ""
 	matchingCount := 0   // Count of matching residues
@@ -96,57 +92,50 @@ func NeedlemanWunsch(seq1, seq2 string) (string, string, string, float64) {
 	for i > 0 && j > 0 {
 		scoreCurrent := dp[i][j]
 		scoreDiagonal := dp[i-1][j-1]
-		//scoreUp := dp[i][j-1]
 		scoreLeft := dp[i-1][j]
-
 		if scoreCurrent == scoreDiagonal+score(rune(seq1[i-1]), rune(seq2[j-1])) {
-			// If it's a match, increment the matchingCount
 			if seq1[i-1] == seq2[j-1] {
 				matchingCount++
-				matchLine = "|" + matchLine // symbol for match
+				matchLine = "|" + matchLine // Mark as match
 			} else {
-				matchLine = " " + matchLine // mismatch symbol
+				matchLine = " " + matchLine // Mark as mismatch
 			}
-
-			alignmentLength++
 			align1 = string(seq1[i-1]) + align1
 			align2 = string(seq2[j-1]) + align2
 			i--
 			j--
 		} else if scoreCurrent == scoreLeft+gapPenalty {
-			matchLine = " " + matchLine // mismatch symbol for gap
+			matchLine = " " + matchLine // Mark gap in seq2
 			align1 = string(seq1[i-1]) + align1
 			align2 = "-" + align2
-			alignmentLength++
 			i--
 		} else {
-			matchLine = " " + matchLine // mismatch symbol for gap
+			matchLine = " " + matchLine // Mark gap in seq1
 			align1 = "-" + align1
 			align2 = string(seq2[j-1]) + align2
-			alignmentLength++
 			j--
 		}
+		alignmentLength++
 	}
-
-	// Complete the alignment for any remaining characters in seq1 or seq2
+	// Handle any remaining characters in seq1 or seq2
 	for i > 0 {
 		align1 = string(seq1[i-1]) + align1
 		align2 = "-" + align2
-		alignmentLength++
+		matchLine = " " + matchLine // Mark gap in seq2
 		i--
+		alignmentLength++
 	}
 	for j > 0 {
 		align1 = "-" + align1
 		align2 = string(seq2[j-1]) + align2
-		alignmentLength++
+		matchLine = " " + matchLine // Mark gap in seq1
 		j--
+		alignmentLength++
 	}
-
 	// Calculate the percentage similarity
 	percentSimilarity := 0.0
 	if alignmentLength > 0 {
 		percentSimilarity = float64(matchingCount) / float64(alignmentLength) * 100
 	}
-
 	return align1, align2, matchLine, percentSimilarity
 }
