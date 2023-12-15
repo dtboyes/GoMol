@@ -6,6 +6,10 @@ go get -u github.com/go-gl/glfw/v3.3/glfw
 go get -u gonum.org/v1/gonum/mat
 ```
 
+Installing Flask for Python
+1. If you do not have the pip package manager for Python set up, follow the instructions to install [pip](https://pip.pypa.io/en/stable/installation/) assuming that Python is already installed.
+2. run ```pip3 install flask```, assuming you do not already have the flask Python library installed on your machine.
+
 ### For Windows Machines ###
 Getting the program set up for running on a Windows machine is a bit more involved.
 1. Follow the installation instructions for [MSYS2](msys2.org).
