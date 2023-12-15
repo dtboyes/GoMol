@@ -4,8 +4,12 @@ import subprocess
 
 app = Flask(__name__)
 
+
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 app.config['UPLOAD_FOLDER'] = BASE_DIR
+
+  
 @app.route('/')
 @app.route('/home')
 def home():
@@ -15,6 +19,8 @@ def home():
 def result():
     
     if request.method == 'POST':
+        if os.path.exists("user_data.txt"):
+            os.remove("user_data.txt")
         pdb_id_1 = request.form.get('pdb_id_1')
         pdb_id_2 = request.form.get('pdb_id_2')
         render_chain_a = request.form.get('render_chain_a')
