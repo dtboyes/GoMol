@@ -4,12 +4,8 @@ import subprocess
 
 app = Flask(__name__)
 
-#change your path based on the location of your file
-UPLOAD_FOLDER = r"C:\Users\BLUE OCEAN\Desktop\study\CMU\go\GoMol\GoMol"
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
+app.config['UPLOAD_FOLDER'] = BASE_DIR
 @app.route('/')
 @app.route('/home')
 def home():
@@ -54,7 +50,10 @@ def result2():
 
 def execute_gomol(pdb_id_1, pdb_id_2, render_chain_a):
     # Execute the GoMol program and pass the user data
-    path = os.path.join(UPLOAD_FOLDER, "GoMol.exe")
+    if os.name == "nt":
+        path = os.path.join(BASE_DIR, "GoMol.exe")
+    elif os.name == "posix":
+        path = os.path.join(BASE_DIR, "GoMol")
     subprocess.run([path, pdb_id_1, pdb_id_2, render_chain_a])
 
 

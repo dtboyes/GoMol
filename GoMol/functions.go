@@ -5,6 +5,7 @@ import (
 	"math"
 )
 
+// parallelizing the rendering process by splitting up viewport into multiple sections
 func RenderMultiProc(pixels []uint8, numProcs int, window1 bool) {
 	// pixels = make([]uint8, 4*imageWidth*imageHeight)
 	finished := make(chan bool, numProcs)
@@ -22,6 +23,9 @@ func RenderMultiProc(pixels []uint8, numProcs int, window1 bool) {
 	}
 }
 
+// RenderScene renders the scene by iterating through each pixel in the viewport
+// for each pixel, a ray is generated with the origin at the camera position and the direction
+// then computes a color for that ray
 func RenderScene(camera *Camera, light *Light, atoms []*Atom, atoms_sequence, aligned_sequence string, start, end int, pixels []uint8, finished chan bool) {
 	for j := start; j < end; j++ {
 		for i := 0; i < imageWidth; i++ {
@@ -43,50 +47,54 @@ func RenderScene(camera *Camera, light *Light, atoms []*Atom, atoms_sequence, al
 	}
 	finished <- true
 }
+
+// RayColor calculates the color of a ray based on the atoms in the scene
+// for a particular ray, the function checks to see if it collides with any atoms in the scene
+// it then computes the color of the ray based on the Phong shading model
 func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom, atoms_sequence, aligned_sequence string) vec3 {
 	for i := 0; i < len(atoms); i++ {
 		collision := RaySphereCollision(r, atoms[i])
 		if !collision.getNormal().EqualsZero() {
 			if colorByChain {
 				if atoms[i].chain == "A" {
-					collision.color = LambertianShading(collision, light, camera, vec3{0.2, 0.7, 0.1})
+					collision.color = PhongShading(collision, light, camera, vec3{0.2, 0.7, 0.1})
 				} else if atoms[i].chain == "B" {
-					collision.color = LambertianShading(collision, light, camera, vec3{0.1, 0.2, 1.0})
+					collision.color = PhongShading(collision, light, camera, vec3{0.1, 0.2, 1.0})
 				} else if atoms[i].chain == "C" {
-					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.1, 0.2})
+					collision.color = PhongShading(collision, light, camera, vec3{1.0, 0.1, 0.2})
 				} else if atoms[i].chain == "D" {
-					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.55, 0.0})
+					collision.color = PhongShading(collision, light, camera, vec3{1.0, 0.55, 0.0})
 				} else {
-					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 1.0, 1.0})
+					collision.color = PhongShading(collision, light, camera, vec3{1.0, 1.0, 1.0})
 				}
 			} else if colorByAtom {
 				if atoms[i].element == "CA" {
-					collision.color = LambertianShading(collision, light, camera, vec3{0.565, 0.565, 0.565})
+					collision.color = PhongShading(collision, light, camera, vec3{0.565, 0.565, 0.565})
 				} else if atoms[i].element == "N" {
-					collision.color = LambertianShading(collision, light, camera, vec3{0.188, 0.313, 0.9725})
+					collision.color = PhongShading(collision, light, camera, vec3{0.188, 0.313, 0.9725})
 				} else if atoms[i].element == "O" {
-					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.051, 0.051})
+					collision.color = PhongShading(collision, light, camera, vec3{1.0, 0.051, 0.051})
 				} else if atoms[i].element == "S" {
-					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.784, 0.196})
+					collision.color = PhongShading(collision, light, camera, vec3{1.0, 0.784, 0.196})
 				}
 			} else if colorByDifferingRegions {
 				if alignedSeq1[atoms[i].seqIndex] != alignedSeq2[atoms[i].seqIndex] {
-					collision.color = LambertianShading(collision, light, camera, vec3{0.69, 0.22, 0.188})
+					collision.color = PhongShading(collision, light, camera, vec3{0.69, 0.22, 0.188})
 				} else {
-					collision.color = LambertianShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
+					collision.color = PhongShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
 				}
 			} else if renderKabsch {
 				if i < len(atoms1_sequence) {
-					collision.color = LambertianShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
+					collision.color = PhongShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
 				} else {
-					collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.22, 1.0})
+					collision.color = PhongShading(collision, light, camera, vec3{1.0, 0.22, 1.0})
 				}
 			} else if renderProtein1 {
-				collision.color = LambertianShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
+				collision.color = PhongShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
 			} else if renderProtein2 {
-				collision.color = LambertianShading(collision, light, camera, vec3{1.0, 0.22, 1.0})
+				collision.color = PhongShading(collision, light, camera, vec3{1.0, 0.22, 1.0})
 			} else {
-				collision.color = LambertianShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
+				collision.color = PhongShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
 			}
 			return collision.color
 		}
@@ -95,6 +103,9 @@ func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom, atoms_sequenc
 	return vec3{0, 0, 0}
 }
 
+// RaySphereCollision calculates the point of collision between a ray and a sphere
+// it returns a collision object which contains the point of collision and the normal vector
+// collision computations done using well defined equations for ray-sphere intersection
 func RaySphereCollision(r *Ray, atom *Atom) Collision {
 	var collision Collision
 	oc := r.getOrigin().Subtract(vec3{atom.x, atom.y, atom.z})
@@ -124,7 +135,11 @@ func RaySphereCollision(r *Ray, atom *Atom) Collision {
 	return collision
 }
 
-func LambertianShading(collision Collision, light *Light, camera *Camera, color vec3) vec3 {
+// PhongShading calculates the color of a pixel based on the Phong shading model
+// it takes specific attenuation constants, light parameters, material properites, etc.
+// uses all of these properties to calculate the color of a ray based on ambient, diffuse, and specular properties
+// specified by the Phong Shading model
+func PhongShading(collision Collision, light *Light, camera *Camera, color vec3) vec3 {
 	constantAttenuation := 0.1
 	linearAttenuation := 0.03
 	quadraticAttenuation := 0.0001
@@ -145,6 +160,9 @@ func LambertianShading(collision Collision, light *Light, camera *Camera, color 
 	return color
 }
 
+// InitializeCamera initializes the camera position and viewport
+// the camera is set to point at the center of mass of all atoms through the viewport
+// each pixel location in the viewport is set up to map to a physical location in space
 func InitializeCamera(atoms []*Atom) *Camera {
 	camera := ParseCamera("input/camera.txt")
 	// makes it so that the camera always points at the center of mass of all atoms
@@ -175,11 +193,14 @@ func InitializeCamera(atoms []*Atom) *Camera {
 	return camera
 }
 
+// InitializeLight initializes the light position to be some set distance away from the center of mass
 func InitializeLight(atoms []*Atom) *Light {
 	light.position = light.position.Add(CenterOfMass(atoms))
 	return light
 }
 
+// RotateAtoms rotates a slice of atoms around the x and y axes based on cursor position
+// after clicking and dragging using the mouse
 func RotateAtoms(atoms []*Atom, rotationX, rotationY float64) []*Atom {
 	for i := 0; i < len(atoms); i++ {
 		// rotate around x axis
@@ -201,6 +222,9 @@ func RotateAtoms(atoms []*Atom, rotationX, rotationY float64) []*Atom {
 	return atoms
 }
 
+// converts a vec3 of float values between 0 and 1 to a vec3 of uint8 values between 0 and 255
+// values were originally between 0 and 1 to perform shading computations since PhongShading expects
+// values between 0 and 1
 func colorToRGBA(c vec3) [4]uint8 {
 	return [4]uint8{
 		uint8(c.x * 255),
@@ -210,6 +234,7 @@ func colorToRGBA(c vec3) [4]uint8 {
 	}
 }
 
+// GetQuerySequence returns the amino acid sequence of a slice of atoms
 func GetQuerySequence(atoms []*Atom) string {
 	sequence := ""
 	current_ind := -100
@@ -222,6 +247,9 @@ func GetQuerySequence(atoms []*Atom) string {
 	return sequence
 }
 
+// ConvertAminoAcidToSingleChar converts a 3 letter amino acid to a single character code
+// this is to make it easier to perform sequence alignment, this way each index is associated
+// with a single character in the amino acid sequence
 func ConvertAminoAcidToSingleChar(aa string) string {
 	switch aa {
 	case "MET":

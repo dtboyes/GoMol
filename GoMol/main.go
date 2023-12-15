@@ -16,21 +16,11 @@ func init() {
 }
 
 func main() {
-	title := `
-	===============================
-		      GoMol
-	===============================
-	A Protein Analysis and Molecular
-	   Visualization Tool
-	===============================
-	`
-	fmt.Println(title)
-
 	// initialize number of processors
 	numProcs := runtime.NumCPU()
 	runtime.GOMAXPROCS(numProcs)
 
-	// DOWNLOAD PDB FILE
+	// DOWNLOAD PDB FILES
 	pdbURL := "https://files.rcsb.org/download/" + os.Args[1] + ".pdb"
 	localPath := "pdbfiles/" + os.Args[1] + ".pdb"
 	err := downloadPDB(pdbURL, localPath)
@@ -43,6 +33,7 @@ func main() {
 	if err != nil {
 		fmt.Println("Error downloading PDB file:", err)
 	}
+
 	// Initialize GLFW and create a window
 	if err := glfw.Init(); err != nil {
 		log.Fatal(err)
@@ -57,6 +48,7 @@ func main() {
 	}
 
 	window.MakeContextCurrent()
+
 	// Initialize OpenGL
 	if err := gl.Init(); err != nil {
 		log.Fatal(err)
@@ -67,20 +59,11 @@ func main() {
 	atoms1 = ParsePDB("pdbfiles/" + os.Args[1] + ".pdb")
 	atoms2 = ParsePDB("pdbfiles/" + os.Args[2] + ".pdb")
 
-	menu := `
-	==============================
-		    Options
-	==============================
-	1. Press "1" - Color protein by different side chain
-	2. Press "2" - Color protein by different atom
-	3. Press "3" - Color protein by differing regions from sequence alignment
-	==============================
-	`
-	fmt.Println(menu)
-
+	// get amino acid sequences from atom slices
 	atoms1_sequence = GetQuerySequence(atoms1)
 	atoms2_sequence = GetQuerySequence(atoms2)
 
+	// perform Needleman-Wunsch algorithm to get aligned sequences and percent similarity
 	alignedSeq1, alignedSeq2, matchLine, percentSimilarity = NeedlemanWunsch(atoms1_sequence, atoms2_sequence)
 	fmt.Println(alignedSeq1)
 	fmt.Println(matchLine)
@@ -95,30 +78,39 @@ func main() {
 	light = ParseLight("input/light.txt")
 	light = InitializeLight(atoms1)
 
+	// initialize OpenGL callbacks
 	window.SetMouseButtonCallback(mouseButtonCallback)
 	window.SetCursorPosCallback(cursorPosCallback)
 	window.SetKeyCallback(keyCallback)
 	window.SetScrollCallback(scrollCallback)
 
+	// specify results for Kabsch algorithm output
 	var results1, results2, resultsFinal []*Atom
 	var rmsd float64
 	fmt.Println(len(atoms1_sequence))
 	fmt.Println(len(atoms2_sequence))
-
+	// only use Kabsch algorithm if the lengths of amino acid sequences are identical
 	if len(atoms1_sequence) == len(atoms2_sequence) {
 		results1, results2, rmsd = RunKabsch(atoms1, atoms2)
 		resultsFinal = append(results1, results2...)
+
 	}
+
 	tempAtoms1 := make([]*Atom, len(atoms1))
 	copy(tempAtoms1, atoms1)
 	tempResults := make([]*Atom, 0)
+
+	// only render alpha carbons for Kabsch for easier visualization
 	for _, val := range resultsFinal {
 		if val.element == "CA" {
 			tempResults = append(tempResults, val)
 		}
 	}
 	fmt.Println("RMSD from Kabsch algorithm: ", rmsd)
+
 	camera = InitializeCamera(atoms1)
+
+	// main rendering loop, which handles atom rotation, parallel ray tracing, drawing pixels buffer, and changing between rendering options
 	for !window.ShouldClose() {
 		if renderProtein2 {
 			atoms1 = atoms2
@@ -140,6 +132,7 @@ func main() {
 	}
 }
 
+// mouse button callback to handle protein rotation when mouse is pressed
 func mouseButtonCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	if button == glfw.MouseButtonLeft {
 		if action == glfw.Press {
@@ -159,6 +152,7 @@ func saveResultToFile(alignedSeq1, matchLine, alignedSeq2 string) {
 	}
 }
 
+// cursor position call back to handle protein location based on cursor position
 func cursorPosCallback(window *glfw.Window, xpos, ypos float64) {
 	if leftMouseButtonPressed {
 		dx := xpos - lastX
@@ -178,6 +172,7 @@ func cursorPosCallback(window *glfw.Window, xpos, ypos float64) {
 	lastX, lastY = xpos, ypos
 }
 
+// many key callback options to handle different rendering options
 func keyCallback(window *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	if action == glfw.Press || action == glfw.Repeat {
 		if key == glfw.KeyEscape {
@@ -222,6 +217,7 @@ func keyCallback(window *glfw.Window, key glfw.Key, scancode int, action glfw.Ac
 	}
 }
 
+// scroll callback to handle zooming camera in and out
 func scrollCallback(window *glfw.Window, xoff, yoff float64) {
 	camera.position.z += yoff * 0.1
 	camera.position.z -= xoff * 0.1
