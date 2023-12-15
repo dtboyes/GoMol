@@ -16,8 +16,10 @@ Getting the program set up for running on a Windows machine is a bit more involv
 3. If MSYS2 is installed in the C Drive, run the following command to add the gcc executable to your PATH.
    
    a. ```$env:Path = "C:\msys64\ucrt64\bin;$env:Path"```
+
+   b. Just replace directory with where msys64 directory is located on your machine.
    
-4. Once this is complete, you can run the following command to open the web page, and follow all of the prompts to render your proteins of interest.
+5. Once this is complete, you can run the following command to open the web page, and follow all of the prompts to render your proteins of interest.
    
    a. ```python3 app.py```
 
