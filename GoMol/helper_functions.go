@@ -11,7 +11,7 @@ func (v1 vec3) Subtract(v2 vec3) vec3 {
 	return vec3{v1.x - v2.x, v1.y - v2.y, v1.z - v2.z}
 }
 
-func Cross(v1, v2 vec3) vec3 {
+func (v1 vec3) Cross(v2 vec3) vec3 {
 	return vec3{v1.y*v2.z - v1.z*v2.y,
 		v1.z*v2.x - v1.x*v2.z,
 		v1.x*v2.y - v1.y*v2.x}
@@ -40,13 +40,6 @@ func (v vec3) EqualsZero() bool {
 // Ray getter functions
 func (r Ray) getOrigin() vec3    { return r.origin }
 func (r Ray) getDirection() vec3 { return r.direction }
-
-// Ray helper functions
-func (r Ray) getAt(t float64) vec3 {
-	return vec3{r.origin.x + r.direction.x*t,
-		r.origin.y + r.direction.y*t,
-		r.origin.z + r.direction.z*t}
-}
 
 // camera function definitions
 func (c Camera) getPosition() vec3 { return c.position }
