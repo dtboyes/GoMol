@@ -10,7 +10,7 @@ go get -u gonum.org/v1/gonum/mat
 Getting the program set up for running on a Windows machine is a bit more involved.
 1. Follow the installation instructions for [MSYS2](msys2.org).
    
-   a. Necessary because it contains tools necessary for compiling and running native Windows programs.
+   a. Required because it contains tools necessary for compiling and running native Windows programs.
 
    b. Contains the gcc compiler, which is necessary for running our program because the Go graphics libraries we are using are written in C or C++.
 3. If MSYS2 is installed in the C Drive, run the following command to add the gcc executable to your PATH.
