@@ -52,8 +52,8 @@
         
         <tr>
             <th>matchLine</th>
-            {% for char in match %}
-                <td style="font-size: 14px;">{{ char }}</td>
+            {% for char, color in zipped %}
+                <td style="font-size: 14px; background-color: {{ color }};">{{ char }}</td>
             {% endfor %}
         </tr>
         

@@ -6,6 +6,7 @@ import (
 	"math"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
@@ -69,8 +70,6 @@ func main() {
 	fmt.Println(matchLine)
 	fmt.Println(alignedSeq2)
 
-	saveResultToFile(alignedSeq1, matchLine, alignedSeq2)
-
 	fmt.Printf("The percent identity of the two sequences using Needleman-Wunsch is %.2f%%\n\n", percentSimilarity)
 
 	// initialize camera and light
@@ -89,13 +88,21 @@ func main() {
 	var rmsd float64
 	fmt.Println(len(atoms1_sequence))
 	fmt.Println(len(atoms2_sequence))
-	// only use Kabsch algorithm if the lengths of amino acid sequences are identical
-	if len(atoms1_sequence) == len(atoms2_sequence) {
-		results1, results2, rmsd = RunKabsch(atoms1, atoms2)
-		resultsFinal = append(results1, results2...)
 
+	alignedAtoms1, alignedAtoms2 = FilterAlignedAtoms(atoms1_sequence, atoms2_sequence, alignedSeq1, alignedSeq2, atoms1, atoms2)
+	atoms1_sequence = GetQuerySequence(alignedAtoms1)
+
+	if len(atoms1) != len(atoms2) {
+		results1, results2, rmsd = RunKabsch(alignedAtoms1, alignedAtoms2)
+	} else {
+		results1, results2, rmsd = RunKabsch(atoms1, atoms2)
 	}
 
+	resultsFinal = append(results1, results2...)
+
+	qRes := qRes(alignedAtoms1, alignedAtoms2)
+
+	saveResultToFile(alignedSeq1, matchLine, alignedSeq2, qRes)
 	tempAtoms1 := make([]*Atom, len(atoms1))
 	copy(tempAtoms1, atoms1)
 	tempResults := make([]*Atom, 0)
@@ -144,8 +151,14 @@ func mouseButtonCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Ac
 	}
 }
 
-func saveResultToFile(alignedSeq1, matchLine, alignedSeq2 string) {
-	result := alignedSeq1 + "\n" + matchLine + "\n" + alignedSeq2
+func saveResultToFile(alignedSeq1, matchLine, alignedSeq2 string, qRes []float64) {
+	qResStr := make([]string, len(qRes))
+	for i, score := range qRes {
+		qResStr[i] = fmt.Sprintf("%.2f", score) // Format to two decimal places
+	}
+	qResLine := strings.Join(qResStr, " ")
+
+	result := alignedSeq1 + "\n" + matchLine + "\n" + alignedSeq2 + "\n" + qResLine
 	err := os.WriteFile("result.txt", []byte(result), 0644)
 	if err != nil {
 		log.Fatal(err)

@@ -62,6 +62,22 @@ func GenerateContactMap(atoms []*Atom) [][]float64 {
 }
 
 func FilterAlignedAtoms(seq1, seq2, align1, align2 string, atoms1, atoms2 []*Atom) ([]*Atom, []*Atom) {
+	/*
+		kAtoms1 := []*Atom{}
+		kAtoms2 := []*Atom{}
+		for i := range atoms1 {
+			if atoms1[i].element == "CA" {
+				kAtoms1 = append(kAtoms1, atoms1[i])
+			}
+		}
+
+		for i := range atoms2 {
+			if atoms2[i].element == "CA" {
+				kAtoms2 = append(kAtoms2, atoms2[i])
+			}
+		}
+	*/
+
 	alignedAtoms1 := []*Atom{}
 	alignedAtoms2 := []*Atom{}
 	seqIndex1, seqIndex2 := 0, 0

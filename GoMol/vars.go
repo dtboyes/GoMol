@@ -9,16 +9,17 @@ const (
 )
 
 var (
-	camera            *Camera
-	light             *Light
-	atoms1            []*Atom
-	atoms2            []*Atom
-	atoms1_sequence   string
-	atoms2_sequence   string
-	alignedSeq1       string
-	alignedSeq2       string
-	matchLine         string
-	percentSimilarity float64
+	camera                       *Camera
+	light                        *Light
+	atoms1                       []*Atom
+	atoms2                       []*Atom
+	atoms1_sequence              string
+	atoms2_sequence              string
+	alignedSeq1                  string
+	alignedSeq2                  string
+	matchLine                    string
+	percentSimilarity            float64
+	alignedAtoms1, alignedAtoms2 []*Atom
 )
 
 var (

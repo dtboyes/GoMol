@@ -84,7 +84,7 @@ func RayColor(r *Ray, light *Light, camera *Camera, atoms []*Atom, atoms_sequenc
 					collision.color = PhongShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
 				}
 			} else if renderKabsch {
-				if i < len(atoms1_sequence) {
+				if i < len(alignedAtoms1) {
 					collision.color = PhongShading(collision, light, camera, vec3{0.373, 0.651, 0.286})
 				} else {
 					collision.color = PhongShading(collision, light, camera, vec3{1.0, 0.22, 1.0})
