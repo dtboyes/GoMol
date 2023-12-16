@@ -34,6 +34,9 @@ The process for getting set up on Mac machines is much simpler (after you have t
 1. Just run ```python3 app.py``` in the correct directory.
    
    a. The scene will only render in the bottom left quadrant of the window. This may be a system level issue on Mac, because the full window renders fine on Windows machines.
+
+### Link to YouTube Demo ###
+https://youtu.be/UDtahJ3GH84
    
 
 
