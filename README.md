@@ -32,6 +32,7 @@ Getting the program set up for running on a Windows machine is a bit more involv
 ### For Mac Machines ###
 The process for getting set up on Mac machines is much simpler (after you have the required libraries).
 1. Just run ```python3 app.py``` in the correct directory.
+   
    a. The scene will only render in the bottom left quadrant of the window. This may be a system level issue on Mac, because the full window renders fine on Windows machines.
    
 
