@@ -4,6 +4,8 @@ import (
 	"math"
 )
 
+// qRes takes as input two slices of atom pointers and returns a slice of floats that corresponds to the qRes score
+// of each residue index
 func qRes(atoms1, atoms2 []*Atom) []float64 {
 	if len(atoms1) != len(atoms2) {
 		panic("residue length mismatch")
@@ -41,6 +43,9 @@ func qRes(atoms1, atoms2 []*Atom) []float64 {
 	return qRes
 }
 
+// GenerateContactMap takes as input a slice of atom pointers and returns a
+// 2-d matrix where each cell is the distance between
+// atoms i and j
 func GenerateContactMap(atoms []*Atom) [][]float64 {
 	n := len(atoms)
 
@@ -61,6 +66,9 @@ func GenerateContactMap(atoms []*Atom) [][]float64 {
 
 }
 
+// FilterAlignedAtoms takes as input sequence strings, aligned sequence strings,
+// and atoms slices and returns two slices of
+// atoms pointers such that unaligned residues are removed
 func FilterAlignedAtoms(seq1, seq2, align1, align2 string, atoms1, atoms2 []*Atom) ([]*Atom, []*Atom) {
 	/*
 		kAtoms1 := []*Atom{}
@@ -102,6 +110,7 @@ func FilterAlignedAtoms(seq1, seq2, align1, align2 string, atoms1, atoms2 []*Ato
 	return alignedAtoms1, alignedAtoms2
 }
 
+// Distance takes as input two atom pointers and returns a float of the distance.
 func Distance(atom1, atom2 *Atom) float64 {
 	deltaX := atom2.x - atom1.x
 	deltaY := atom2.y - atom1.y

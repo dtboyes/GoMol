@@ -7,6 +7,8 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+// RunKabsch takes as input two slices of atoms pointers and returns the rotated versions of these atoms slices
+// such that the RMSD is minimized
 func RunKabsch(samp1, samp2 []*Atom) ([]*Atom, []*Atom, float64) {
 	var s1 *mat.Dense
 	var s2 *mat.Dense
@@ -22,6 +24,8 @@ func RunKabsch(samp1, samp2 []*Atom) ([]*Atom, []*Atom, float64) {
 	return r1, r2, rmsd
 }
 
+// Kabsch takes as input two dense matrices and performs the linear algebra calcuations and returns the matrices
+// of the rotated points and the RMSD
 func kabsch(p, q *mat.Dense) (*mat.Dense, *mat.Dense, float64) {
 	a := CopyMatrix(p)
 	b := CopyMatrix(q)
@@ -105,6 +109,7 @@ func kabsch(p, q *mat.Dense) (*mat.Dense, *mat.Dense, float64) {
 	return a, &bRotated, RMSD
 }
 
+// GenerateMatrix takes as input a slice of atom pointers and returns a dense matrix of the coordinates
 func GenerateMatrix(atoms []*Atom) *mat.Dense {
 	n := len(atoms)
 
@@ -121,6 +126,8 @@ func GenerateMatrix(atoms []*Atom) *mat.Dense {
 	return matrix
 }
 
+// GenerateAtomSlice takes as input a dense matrix and atom slice and returns an atom slice with
+// with the correct pdb info incorporated
 func GenerateAtomSlice(matrix *mat.Dense, pdbInfo []*Atom) []*Atom {
 	rows, _ := matrix.Dims()
 
@@ -143,6 +150,8 @@ func GenerateAtomSlice(matrix *mat.Dense, pdbInfo []*Atom) []*Atom {
 	return atoms
 }
 
+// CenterAtOrigin takes as input a dense matrix and returns another dense matrix with the coordinates
+// centered at the origin
 func CenterAtOrigin(a *mat.Dense) *mat.Dense {
 	numRows, numCols := a.Dims()
 	colAvgs := AvgColumns(a)
@@ -154,6 +163,7 @@ func CenterAtOrigin(a *mat.Dense) *mat.Dense {
 	return a
 }
 
+// SumColumns takes an input a dense matrix and returns a slice of floats with the sum of the columns
 func SumColumns(a *mat.Dense) []float64 {
 	numRows, numCols := a.Dims()
 	sums := make([]float64, numCols)
@@ -166,6 +176,7 @@ func SumColumns(a *mat.Dense) []float64 {
 	return sums
 }
 
+// AvgColumns takes as input a dense matrix and returns a slice of floats that correspond to the column averages
 func AvgColumns(a *mat.Dense) []float64 {
 	numRows, _ := a.Dims()
 	avgs := SumColumns(a)
@@ -176,6 +187,7 @@ func AvgColumns(a *mat.Dense) []float64 {
 	return avgs
 }
 
+// CopyMatrix takes as input a dense matrix and returns a exact copy as a dense matrix
 func CopyMatrix(a *mat.Dense) *mat.Dense {
 	r, c := a.Dims()
 	data := make([]float64, r*c)
@@ -188,6 +200,7 @@ func CopyMatrix(a *mat.Dense) *mat.Dense {
 	return newMat
 }
 
+// matPrint takes as input a matrix and prints it
 func matPrint(X mat.Matrix) {
 	fa := mat.Formatted(X, mat.Prefix(""), mat.Squeeze())
 	fmt.Printf("%v\n", fa)
